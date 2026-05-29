@@ -1,12 +1,2 @@
 .DS_Store
 .idea/
-__pycache__/
-*.py[cod]
-
-# 本地 eval 与渲染产物。保留已入库的基准样例,新 iteration 默认不入库。
-**/stderr.log
-workspace/iteration-*/
-!workspace/iteration-1/
-!workspace/iteration-1/**
-workspace/**/*.html
-产品克制-评审-*.html
