@@ -226,6 +226,22 @@ class TestScorecard(unittest.TestCase):
         self.assertEqual(R.LAMP_MAP['🔴'][0], 'red')
         self.assertEqual(R.LAMP_MAP['🟢'], ('green', '绿'))
 
+    def test_reason_with_pipe_not_truncated(self):
+        # 理由列本身含 `|` 时,cells[2:] 应被完整拼回,不被静默截断
+        text = ('| 维度 | 灯 | 理由 |\n|---|---|---|\n'
+                '| 商业账 | 🔴 | 效率低 | 成本高 |')
+        rows = R.parse_scorecard(text)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['reason'], '效率低 | 成本高')
+
+
+class TestMdBlockRobustness(unittest.TestCase):
+    def test_empty_string(self):
+        self.assertEqual(R.md_block(''), '')
+
+    def test_none(self):
+        self.assertEqual(R.md_block(None), '')
+
 
 if __name__ == '__main__':
     unittest.main()

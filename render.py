@@ -48,7 +48,7 @@ def parse_scorecard(text):
         cells = [c.strip() for c in line.strip('|').split('|')]
         if len(cells) < 3:
             continue
-        dim, lamp, reason = cells[0], cells[1], cells[2]
+        dim, lamp, reason = cells[0], cells[1], ' | '.join(cells[2:])
         if dim == '维度' or set(dim) <= set('-: '):  # 跳过表头与分隔行
             continue
         emoji = next((e for e in LAMP_MAP if e in lamp), None)
@@ -95,8 +95,10 @@ _OLI = r'^\s*\d+\.\s+'
 
 def md_block(md):
     """块级 Markdown:段落 / 无序列表 / 有序列表 / 分隔线。"""
+    if not md:
+        return ''
     lines = md.split('\n')
-    out, i, n = [], 0, len(md.split('\n'))
+    out, i, n = [], 0, len(lines)
     while i < n:
         line = lines[i].rstrip()
         if not line.strip():
@@ -333,7 +335,7 @@ def render_file(md_path, out=None, title=None):
     with open(out, 'w', encoding='utf-8') as f:
         f.write(render_report_html(report))
     print(f'  ✓ {out}')
-    return out
+    return out, report
 
 
 def render_iteration(iter_dir):
@@ -345,10 +347,7 @@ def render_iteration(iter_dir):
     for md in mds:
         try:
             out = os.path.join(os.path.dirname(md), 'report.html')
-            render_file(md, out=out)
-            with open(md, encoding='utf-8') as f:
-                rep = parse_report(f.read(), eval_dirname=_eval_dirname_of(md),
-                                   md_path=md, date=_date_of(md))
+            out, rep = render_file(md, out=out)
             entries.append({'title': rep['title'], 'tendency': rep['tendency'],
                             'scorecard': rep['scorecard'],
                             'href': os.path.relpath(out, iter_dir)})
