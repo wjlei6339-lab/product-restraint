@@ -79,3 +79,62 @@ def parse_detail_blocks(text):
         end = positions[i + 1][0] if i + 1 < len(positions) else len(text)
         blocks[key] = text[start:end].strip()
     return blocks
+
+
+def md_inline(text):
+    """行内 Markdown:先 HTML 转义,再处理 **粗体** 与 `代码`。"""
+    text = html_lib.escape(text)
+    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
+    return text
+
+
+_LI = r'^\s*[-*]\s+'
+_OLI = r'^\s*\d+\.\s+'
+
+
+def md_block(md):
+    """块级 Markdown:段落 / 无序列表 / 有序列表 / 分隔线。"""
+    lines = md.split('\n')
+    out, i, n = [], 0, len(md.split('\n'))
+    while i < n:
+        line = lines[i].rstrip()
+        if not line.strip():
+            i += 1
+            continue
+        if re.match(r'^---+$', line.strip()):
+            out.append('<hr/>')
+            i += 1
+            continue
+        if re.match(_LI, line):
+            items = []
+            while i < n and re.match(_LI, lines[i]):
+                items.append('<li>' + md_inline(re.sub(_LI, '', lines[i].rstrip())) + '</li>')
+                i += 1
+            out.append('<ul>' + ''.join(items) + '</ul>')
+            continue
+        if re.match(_OLI, line):
+            items = []
+            while i < n and re.match(_OLI, lines[i]):
+                items.append('<li>' + md_inline(re.sub(_OLI, '', lines[i].rstrip())) + '</li>')
+                i += 1
+            out.append('<ol>' + ''.join(items) + '</ol>')
+            continue
+        para = [line]
+        i += 1
+        while i < n and lines[i].strip() and not re.match(_LI + r'|' + _OLI + r'|^---+$', lines[i]):
+            para.append(lines[i].rstrip())
+            i += 1
+        out.append('<p>' + md_inline(' '.join(para)) + '</p>')
+    return '\n'.join(out)
+
+
+def _strip_lead(content):
+    """去掉块首的 **标题** 行(已由 <h3> 呈现),保留其余内容。"""
+    lines = content.split('\n')
+    if lines and lines[0].lstrip().startswith('**'):
+        m = re.match(r'\s*\*\*(.+?)\*\*[::]?\s*(.*)', lines[0])
+        if m:
+            rest = m.group(2)
+            lines = ([rest] if rest.strip() else []) + lines[1:]
+    return '\n'.join(lines).strip()

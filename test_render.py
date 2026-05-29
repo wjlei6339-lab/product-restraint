@@ -52,6 +52,37 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestMarkdown(unittest.TestCase):
+    def test_inline_bold_and_escape(self):
+        self.assertEqual(R.md_inline('**粗** <x> `c`'),
+                         '<strong>粗</strong> &lt;x&gt; <code>c</code>')
+
+    def test_inline_escape_amp(self):
+        self.assertEqual(R.md_inline('A & B'), 'A &amp; B')
+
+    def test_block_paragraph(self):
+        self.assertEqual(R.md_block('一句话。'), '<p>一句话。</p>')
+
+    def test_block_unordered_list(self):
+        self.assertEqual(R.md_block('- a\n- b'),
+                         '<ul><li>a</li><li>b</li></ul>')
+
+    def test_block_ordered_list(self):
+        self.assertEqual(R.md_block('1. 甲\n2. 乙'),
+                         '<ol><li>甲</li><li>乙</li></ol>')
+
+    def test_block_hr(self):
+        self.assertEqual(R.md_block('---'), '<hr/>')
+
+    def test_strip_lead_inline_title(self):
+        # 「**重启条件:** 拿到…」去掉粗体标题后保留正文
+        self.assertEqual(R._strip_lead('**重启条件:** 拿到证据。'), '拿到证据。')
+
+    def test_strip_lead_titleonly_then_list(self):
+        out = R._strip_lead('**Premortem —— 它怎么死:**\n- 没人用。')
+        self.assertEqual(out, '- 没人用。')
+
+
 class TestDetailBlocks(unittest.TestCase):
     def setUp(self):
         self.blocks = R.parse_detail_blocks(R.split_sections(SAMPLE)['three'])
