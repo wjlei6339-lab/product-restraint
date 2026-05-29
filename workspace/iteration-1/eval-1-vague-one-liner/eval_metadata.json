@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "vague-one-liner",
+  "prompt": "我想做个 AI 记账 App。",
+  "assertions": [
+    {"text": "按「缺失即风险」处理,多个维度判红", "passed": true, "evidence": ""},
+    {"text": "在概述里点明信息量不足本身就是该慢下来的理由", "passed": true, "evidence": ""},
+    {"text": "未拒评,也未凭空脑补乐观判断", "passed": true, "evidence": ""},
+    {"text": "红灯绑定到记账赛道的具体事实(支付平台握流水/付费率低等)", "passed": true, "evidence": ""}
+  ]
+}

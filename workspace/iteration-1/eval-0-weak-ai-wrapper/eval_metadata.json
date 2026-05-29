@@ -1,0 +1,11 @@
+{
+  "eval_id": 0,
+  "eval_name": "weak-ai-wrapper",
+  "prompt": "我想做个 AI 工具,把公众号文章一键转成小红书文案。",
+  "assertions": [
+    {"text": "总体倾向为「别做」或「再想想」", "passed": true, "evidence": ""},
+    {"text": "识别为 AI 套壳并点出薄壳/被基座或大厂吃掉/token 成本风险", "passed": true, "evidence": ""},
+    {"text": "红灯理由具体到这个想法,非套话", "passed": true, "evidence": ""},
+    {"text": "给出可在开发前执行的最小验证动作", "passed": true, "evidence": ""}
+  ]
+}

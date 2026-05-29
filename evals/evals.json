@@ -1,0 +1,29 @@
+{
+  "skill_name": "product-restraint",
+  "evals": [
+    {
+      "id": 0,
+      "name": "weak-ai-wrapper",
+      "prompt": "我想做个 AI 工具,把公众号文章一键转成小红书文案。",
+      "expected_output": "倾向应偏向「别做」或「再想想」;应识别为 AI 套壳产品并点出薄壳/被大厂或基座吃掉的风险;红灯理由要具体到这个想法,不能是套话",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "vague-one-liner",
+      "prompt": "我想做个 AI 记账 App。",
+      "expected_output": "应按「缺失即风险」处理:多个维度判红,并在概述里直接说明信息量不足本身就是该慢下来的理由;不应拒评,也不应凭空脑补乐观判断",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "evidenced-decent-idea",
+      "prompt": "我是健身教练,手下 8 个同行都在用 Excel 手动排课、微信收款、退费算得头疼,我想做个专给独立教练的排课+收款小程序。",
+      "expected_output": "应认可真需求度有证据(同行在用笨办法解决、有真实痛点),不无脑否定;但仍应严格指出差异化/竞品/市场规模等风险;倾向合理(再想想或可以试),并给出可执行的最小验证动作",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
