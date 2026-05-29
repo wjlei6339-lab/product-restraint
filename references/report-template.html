@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产品克制 · 评审报告 — {{IDEA_TITLE}}</title>
+
+<!--
+═══════════════════════════════════════════════════════════════════════════
+  「产品克制」评审报告 · HTML 呈现模版
+  ─────────────────────────────────────────────────────────────────────────
+  这是一份「带样例数据的完整范本」。当前页面里填的是一份示例评审
+  (自由职业者发票/催款工具),用来让人类在浏览器里直接判断样式与专业度。
+
+  接入 skill 后,LLM 在评审末尾「参照本模版」生成正式报告:把正文里每个
+  形如「{{占位符}}」的注释标记区域内的【样例内容】,整段替换成本次评审的
+  真实内容,其余结构、样式、CSS 一概不动。
+
+  ── 占位符清单(替换规则)──────────────────────────────────────────
+  {{IDEA_TITLE}}        想法一句话标题(报头大标题 + 文档 title)
+  {{REPORT_DATE}}       评审日期,格式 YYYY-MM-DD
+  {{RESTATEMENT}}       复述段:把想法用自己的话说回去;走过提问闸门时
+                        纳入用户确认的事实(目标用户/现状/差异)
+  {{VERDICT}}           总体倾向三选一,需同时改两处:
+                          1) 徽章 class:verdict--dont / verdict--rethink / verdict--try
+                          2) 徽章文字:别做 / 再想想 / 可以试
+  {{VERDICT_TAGLINE}}   总体倾向的一句定性
+  {{REASON_*}}          六维评分卡的「一句话理由」(6 条,维度名固定不动)。
+                        每行灯色同时改两处:① 灯 span 的 class
+                        (light--red/light--amber/light--green)② 灯文字(红/黄/绿)。
+                        emoji→class 映射:🔴→red、🟡→amber、🟢→green
+  {{SUMMARY}}           简要概述,3–5 句,点出最致命的 1–2 点
+  {{DIM_DETAIL}}        逐维度展开:只展开值得展开的(红灯 + 关键黄灯必展,
+                        绿灯可省)。模版给了 4 个 article.dim 块,按需增删整块;
+                        每块同步改维度名、灯 class+文字、展开正文
+  {{PREMORTEM}}         事前验尸:假设它已经失败,最可能的 1–2 条死法
+  {{VALIDATION}}        最小验证动作:一个开发前就能低成本做的具体动作
+                        (优先《The Mom Test》式观察过去行为)
+  {{RESTART_CONDITION}} 放行/重启路径:结论「别做」时给「什么条件下值得重启」;
+                        「可以试」时可改为「放行后最该盯住的一件事」
+
+  ── 不变量(改 prose 时不要破坏)──────────────────────────────────
+  · 六个维度、维度名、三部分顺序固定;HTML 仅是同一份报告的另一种呈现,
+    内容/灯色/判断必须与正文三部分完全一致。
+  · 单文件、内联 CSS、零外部依赖,确保可离线打开 + 印刷友好。
+
+  ── 生成正式报告时的清理规则 ──────────────────────────────────────
+  · 删除本顶部说明注释(含这份占位符清单本身)——它只服务模版,不进正式报告。
+  · 删除所有含 {{}} 的行内引导注释;保留分区大注释(形如「══ 报头 ══」那种)。
+  · 填充后页面中不得残留任何 {{}} 占位符。
+  · {{REPORT_DATE}} 出现在报头与页脚两处、{{IDEA_TITLE}} 出现在文档 title 与报头两处,均需一致替换。
+  · 三个强调块(Premortem / 最小验证动作 / 重启)的固定小标题是结构,保持不动,不随结论改写。
+═══════════════════════════════════════════════════════════════════════════
+-->
+
+<style>
+  :root {
+    /* 纸与墨 —— 暖白纸底,墨色文字,全篇唯一强色彩留给灯色 */
+    --paper:        #faf8f3;
+    --paper-edge:   #f4f1e8;
+    --ink:          #1f1b16;
+    --ink-soft:     #5c554a;
+    --ink-faint:    #8d8475;
+    --line:         #e6dfd0;
+    --line-strong:  #d3cab6;
+
+    /* 灯色三态 —— 红 / 琥珀 / 绿 */
+    --red:        #b23b2e;
+    --red-deep:   #8c2c21;
+    --red-bg:     #f9efed;
+    --amber:      #e09110;   /* 明亮琥珀:仅用于灯点 */
+    --amber-deep: #8a5c0c;   /* 深琥珀:用于徽章底色,保证白字 WCAG AA */
+    --amber-bg:   #fbf2df;
+    --green:      #2f7d54;
+    --green-deep: #235f3f;
+    --green-bg:   #eef4ee;
+
+    --font-serif: "Songti SC", "STSong", "Source Han Serif SC", "Noto Serif CJK SC", Georgia, "Times New Roman", serif;
+    --font-sans:  "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", -apple-system, "Helvetica Neue", sans-serif;
+    --font-mono:  "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    padding: 48px 20px 80px;
+    background:
+      radial-gradient(900px 600px at 12% -8%, #fdfcf8 0%, transparent 60%),
+      var(--paper-edge);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── 纸张 ─────────────────────────────────────────── */
+  .sheet {
+    position: relative;
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(31,27,22,.04), 0 18px 50px -28px rgba(31,27,22,.28);
+    padding: 0 0 4px;
+    overflow: hidden;
+  }
+  /* 顶部三色细带 —— 红→琥珀→绿,呼应评审三态 */
+  .sheet::before {
+    content: "";
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg,
+      var(--red) 0%, var(--red) 33%,
+      var(--amber) 33%, var(--amber) 66%,
+      var(--green) 66%, var(--green) 100%);
+  }
+
+  .pad { padding: 0 clamp(28px, 6vw, 64px); }
+
+  /* ── 报头 ─────────────────────────────────────────── */
+  header { padding-top: 38px; padding-bottom: 30px; }
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand .mark {
+    width: 3px;
+    height: 34px;
+    background: var(--ink);
+    flex: none;
+  }
+  .brand .name { line-height: 1.25; }
+  .brand .name .zh {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .12em;
+  }
+  .brand .name .en {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .doc-meta {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    line-height: 1.9;
+  }
+  .doc-meta .date { color: var(--ink-soft); }
+
+  .headline {
+    margin: 26px 0 0;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(27px, 5vw, 38px);
+    line-height: 1.28;
+    letter-spacing: .005em;
+  }
+  /* {{IDEA_TITLE}} — 报头大标题 */
+
+  .restatement {
+    margin: 18px 0 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--line-strong);
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+  .restatement .label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+
+  .rule { height: 1px; background: var(--line); margin: 0; border: 0; }
+  .rule--soft { background: var(--line); opacity: .7; }
+
+  /* ── 章节标题 ─────────────────────────────────────── */
+  section { padding-top: 36px; padding-bottom: 8px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 0 22px;
+  }
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 3px 11px;
+    flex: none;
+    white-space: nowrap;
+  }
+  .sec-title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: .03em;
+    margin: 0;
+  }
+
+  /* ── 总体倾向 · 判决徽章 ──────────────────────────── */
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 24px;
+    border: 1px solid var(--line-strong);
+    border-left-width: 6px;
+    border-radius: 4px;
+    background: #fff;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .verdict .v-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 6px;
+  }
+  .verdict .v-text {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    margin: 0;
+  }
+  .verdict .v-tagline {
+    flex: 1 1 240px;
+    color: var(--ink-soft);
+    font-size: 15px;
+    line-height: 1.6;
+    padding-left: 20px;
+    border-left: 1px solid var(--line);
+  }
+  /* 三态配色:替换徽章 class 即切换 */
+  .verdict--dont   { border-left-color: var(--red);   background: var(--red-bg); }
+  .verdict--dont   .v-text { color: var(--red-deep); }
+  .verdict--rethink{ border-left-color: var(--amber); background: var(--amber-bg); }
+  .verdict--rethink .v-text { color: var(--amber-deep); }
+  .verdict--try    { border-left-color: var(--green); background: var(--green-bg); }
+  .verdict--try    .v-text { color: var(--green-deep); }
+
+  /* ── 评分卡表格 ───────────────────────────────────── */
+  .scorecard {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .scorecard caption {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 10px;
+  }
+  .scorecard th, .scorecard td {
+    text-align: left;
+    padding: 14px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .scorecard thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1.5px solid var(--line-strong);
+    padding-top: 0;
+  }
+  .scorecard tbody th {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    width: 1%;
+    color: var(--ink);
+  }
+  .scorecard .col-light { width: 1%; white-space: nowrap; }
+  .scorecard .reason { color: var(--ink-soft); line-height: 1.65; }
+  .scorecard tbody tr:last-child th,
+  .scorecard tbody tr:last-child td { border-bottom: 0; }
+
+  /* 灯徽章:圆点 + 文字标签(不只靠颜色,印刷/无障碍友好) */
+  .light {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 3px 10px 3px 8px;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .light::before {
+    content: "";
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .light--red   { color: var(--red-deep);   border-color: #e7c4be; background: var(--red-bg); }
+  .light--red::before   { background: var(--red); }
+  .light--amber { color: var(--amber-deep); border-color: #ecd6a4; background: var(--amber-bg); }
+  .light--amber::before { background: var(--amber); }  /* 灯点保持明亮琥珀 */
+  .light--green { color: var(--green-deep); border-color: #bcd8c4; background: var(--green-bg); }
+  .light--green::before { background: var(--green); }
+
+  /* ── 简要概述 ─────────────────────────────────────── */
+  .summary {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    line-height: 1.8;
+    color: var(--ink);
+    position: relative;
+    padding: 4px 0 4px 26px;
+  }
+  .summary::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--ink);
+  }
+
+  /* ── 详细 · 逐维度展开 ────────────────────────────── */
+  .dim {
+    padding: 18px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .dim:last-of-type { border-bottom: 0; }
+  .dim-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .dim-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 17px;
+    margin: 0;
+  }
+  .dim-body { color: var(--ink-soft); margin: 0; line-height: 1.72; }
+
+  /* ── 强调块:Premortem / 验证 / 重启 ───────────────── */
+  .block {
+    margin-top: 26px;
+    padding: 20px 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: #fff;
+  }
+  .block-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+  .block-label .glyph {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .block-body { margin: 0; color: var(--ink-soft); line-height: 1.72; }
+  .block-body strong { color: var(--ink); font-weight: 700; }
+
+  /* Premortem —— 暗红警示,克制 */
+  .block--premortem {
+    border-left: 5px solid var(--red);
+    background: var(--red-bg);
+  }
+  .block--premortem .block-label { color: var(--red-deep); }
+
+  /* 最小验证动作 —— 行动卡,墨色强调 */
+  .block--validate {
+    border-left: 5px solid var(--ink);
+    background: #fff;
+  }
+  .block--validate .block-label { color: var(--ink); }
+  .block--validate .block-body { color: var(--ink); }
+
+  /* 放行 / 重启 —— 弱化,虚线 */
+  .block--restart {
+    border: 1px dashed var(--line-strong);
+    background: transparent;
+  }
+  .block--restart .block-label { color: var(--green-deep); }
+
+  /* ── 页脚 ─────────────────────────────────────────── */
+  footer {
+    padding-top: 28px;
+    padding-bottom: 34px;
+    margin-top: 38px;
+    border-top: 1px solid var(--line);
+  }
+  .foot-method {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    line-height: 1.7;
+    margin: 0;
+  }
+  .foot-method strong { color: var(--ink-soft); font-weight: 600; }
+  .foot-sig {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* ── 入场动画 ─────────────────────────────────────── */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .anim { opacity: 0; animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    .anim:nth-child(1) { animation-delay: .05s; }
+    .anim:nth-child(2) { animation-delay: .14s; }
+    .anim:nth-child(3) { animation-delay: .23s; }
+    .anim:nth-child(4) { animation-delay: .32s; }
+    .anim:nth-child(5) { animation-delay: .41s; }
+  }
+
+  /* ── 打印 ─────────────────────────────────────────── */
+  @page { margin: 16mm 14mm; }
+  @media print {
+    body { padding: 0; background: #fff; font-size: 11.5pt; }
+    .sheet {
+      max-width: none; border: 0; box-shadow: none;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .anim { opacity: 1 !important; animation: none !important; }
+    section, .verdict, .block, .dim { break-inside: avoid; }
+    .sec-head { break-after: avoid; }
+    footer { break-inside: avoid; }
+  }
+
+  @media (max-width: 560px) {
+    .verdict .v-tagline { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+    .scorecard { font-size: 14px; }
+    .scorecard th, .scorecard td { padding: 12px 8px; }
+  }
+</style>
+</head>
+
+<body>
+<main class="sheet">
+
+  <!-- ══ 报头 ══ -->
+  <header class="pad anim">
+    <div class="masthead">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="name">
+          <span class="zh">产品克制</span><br>
+          <span class="en">Product Restraint</span>
+        </span>
+      </div>
+      <div class="doc-meta">
+        <div>评审报告 · Review</div>
+        <!-- {{REPORT_DATE}} -->
+        <div class="date">2026-05-30</div>
+      </div>
+    </div>
+
+    <!-- {{IDEA_TITLE}} — 想法一句话 -->
+    <h1 class="headline">AI 工具:帮自由职业者自动写发票和催款邮件</h1>
+
+    <!-- {{RESTATEMENT}} — 复述(走过提问闸门时纳入用户确认的事实) -->
+    <p class="restatement">
+      <span class="label">我理解你想做的</span>
+      给自由职业者一个工具,自动生成发票、自动起草催款邮件,帮他们省去手动处理这些杂事的时间——核心卖点是「省事」,目标用户是接单收款全靠自己的个人从业者。
+    </p>
+  </header>
+
+  <hr class="rule">
+
+  <!-- ══ 一、可行性评价 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART I</span>
+      <h2 class="sec-title">一、可行性评价</h2>
+    </div>
+
+    <!-- {{VERDICT}} / {{VERDICT_TAGLINE}}
+         徽章 class 三选一:verdict--dont(别做)/ verdict--rethink(再想想)/ verdict--try(可以试)
+         文字同步改 .v-text -->
+    <div class="verdict verdict--rethink">
+      <div>
+        <p class="v-label">总体倾向</p>
+        <p class="v-text">再想想</p>
+      </div>
+      <p class="v-tagline">痛点是真的,但被你捆错了地方,而且离现有工具太近——现在投入更像赌博。</p>
+    </div>
+
+    <table class="scorecard">
+      <caption>六维评分卡</caption>
+      <thead>
+        <tr>
+          <th scope="col">维度</th>
+          <th scope="col" class="col-light">灯</th>
+          <th scope="col">一句话理由</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 六行维度固定;每行替换 灯 class+文字 与 {{REASON_*}} -->
+        <tr>
+          <th scope="row">真需求度</th>
+          <td class="col-light"><span class="light light--amber">黄</span></td>
+          <!-- {{REASON_DEMAND}} -->
+          <td class="reason">催款确是自由职业者的真痛点,但「写发票」用模板/收款平台几分钟就搞定,痛感弱——你把强痛点和弱痛点捆在了一起。</td>
+        </tr>
+        <tr>
+          <th scope="row">价值与差异</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <!-- {{REASON_VALUE}} -->
+          <td class="reason">Stripe、各类收款/财务 SaaS 已自带发票与催款提醒,「AI 写催款邮件」别人加个按钮就有,你说不出他们短期复制不了的差异。</td>
+        </tr>
+        <tr>
+          <th scope="row">可行性</th>
+          <td class="col-light"><span class="light light--green">绿</span></td>
+          <!-- {{REASON_FEASIBILITY}} -->
+          <td class="reason">技术上不难,生成发票 + 起草邮件是大模型成熟能力,小团队两三周就能出一个能用的 v1。</td>
+        </tr>
+        <tr>
+          <th scope="row">商业账</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <!-- {{REASON_BUSINESS}} -->
+          <td class="reason">纯 wrapper,每封邮件自扛 token 成本;自由职业者价格敏感、付费意愿低,毛利会被压到很难看。</td>
+        </tr>
+        <tr>
+          <th scope="row">市场与时机</th>
+          <td class="col-light"><span class="light light--amber">黄</span></td>
+          <!-- {{REASON_MARKET}} -->
+          <td class="reason">自由职业群体在扩大,但「AI 催款」没有非现在不可的理由,收款平台随时能顺手补上。</td>
+        </tr>
+        <tr>
+          <th scope="row">克制度</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <!-- {{REASON_RESTRAINT}} -->
+          <td class="reason">需求更像「因为 AI 能写邮件所以想做」,而非被反复观察到的痛点;不做的话用户继续在收款平台里点一下,没人会来找你。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="rule rule--soft">
+
+  <!-- ══ 二、简要概述 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART II</span>
+      <h2 class="sec-title">二、简要概述</h2>
+    </div>
+
+    <!-- {{SUMMARY}} — 3–5 句,点出最致命的 1–2 点 -->
+    <p class="summary">催款这个痛点是真的,但你把它和「自动写发票」捆在一起,反而稀释了价值——发票早被解决了。最致命的一点:这功能离现有收款工具太近,Stripe 们顺手加一个「AI 催款」按钮,你就没了。建议先把范围狠狠收窄到「催款」这一个真痛点,再想清楚:凭什么用户愿意离开已经在用的收款平台,专门为你再付一份钱、再学一套流程。</p>
+  </section>
+
+  <hr class="rule rule--soft">
+
+  <!-- ══ 三、详细说明 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART III</span>
+      <h2 class="sec-title">三、详细说明</h2>
+    </div>
+
+    <!-- 逐维度展开:只展开值得展开的(红灯 + 关键黄灯必展,绿灯可省)。
+         下面是 4 个 article.dim;按本次评审需要增删整块,并同步维度名/灯/正文。 -->
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">价值与差异</h3>
+      </div>
+      <!-- {{DIM_DETAIL}} -->
+      <p class="dim-body">这是最该担心的一栏。发票与催款提醒是收款/财务 SaaS 的存量功能,「用 AI 把邮件写得更顺」对它们只是一次提示词更新的工作量。你目前给不出一个它们短期复制不了的东西——没有独有数据、没有嵌进某条别人进不来的工作流。换句话说,你的整个产品就是别人产品里的一个待办按钮。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">商业账</h3>
+      </div>
+      <!-- {{DIM_DETAIL}} -->
+      <p class="dim-body">单位经济不乐观。每封催款邮件都要调用大模型、自扛 token 成本,而自由职业者是出了名的价格敏感人群——他们连每月几十块的工具都会反复掂量。一边是按量上升的成本,一边是极低的付费意愿和客单价,毛利很可能远低于健康 SaaS 的 70–80%,甚至活跃用户越多越亏。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">克制度</h3>
+      </div>
+      <!-- {{DIM_DETAIL}} -->
+      <p class="dim-body">这个想法的来源更像「AI 现在能自动写邮件了,所以顺手做一个」,而不是你反复观察到有人被这件事折磨。检验很简单:如果你永远不做它,会发生什么?答案大概是——什么都不会发生,用户继续在收款平台里点两下,没有人会来催你上线。没有人追着要的东西,通常不值得现在做。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--amber">黄</span>
+        <h3 class="dim-name">真需求度</h3>
+      </div>
+      <!-- {{DIM_DETAIL}} -->
+      <p class="dim-body">六维里唯一有真东西的是「催款」——被拖欠款项确实让自由职业者头疼,且涉及真金白银,属于止痛药而非维生素。但你把它和「自动写发票」捆在一起,稀释了这点价值:发票早被模板和收款平台解决,痛感很弱。把强痛点单独拎出来,才看得清它到底值不值得做。</p>
+    </article>
+
+    <!-- {{PREMORTEM}} -->
+    <div class="block block--premortem">
+      <p class="block-label"><span class="glyph" aria-hidden="true">⚱</span>事前验尸 · Premortem</p>
+      <p class="block-body">假设它已经失败了——最可能的死法是:上线后发现用户宁可在已经用的收款平台里多点一下,也不愿为一个单独工具再付一份钱、再学一套流程。<strong>三个月内活跃用户掉光</strong>,留下的只是几个图新鲜的尝鲜者,而获客成本和 token 成本却没停。</p>
+    </div>
+
+    <!-- {{VALIDATION}} -->
+    <div class="block block--validate">
+      <p class="block-label"><span class="glyph" aria-hidden="true">↓</span>如果你一定要做,先花最小成本验证的那一件事</p>
+      <p class="block-body"><strong>别写代码。</strong>先找 10 个真实的自由职业者,问他们「上一次被拖欠款项时,你具体做了什么、用了什么工具、花了多少时间」。注意听他们描述<strong>过去的真实行为</strong>,而不是问「你会不会用一个 AI 催款工具」。如果多数人只是耸耸肩等着、并没有为催款付出过额外的时间或金钱——那它就不是一个痛到愿意付费的问题,到此就该停。</p>
+    </div>
+
+    <!-- {{RESTART_CONDITION}} -->
+    <div class="block block--restart">
+      <p class="block-label"><span class="glyph" aria-hidden="true">↻</span>什么条件下值得重启</p>
+      <p class="block-body">如果你在访谈里发现某个<strong>具体垂直人群</strong>(比如独立设计师、自由律师)有现有收款平台不覆盖的、独特的催款话术 / 合规 / 对账需求,且他们明确表示愿意为此单独付费——那时再以「某垂直人群的催款助手」重新立项,而不是做一个面向所有自由职业者的通用工具。</p>
+    </div>
+  </section>
+
+  <!-- ══ 页脚 ══ -->
+  <footer class="pad">
+    <p class="foot-method">
+      <strong>方法说明 ·</strong> 本报告由「产品克制」评审生成,默认怀疑、举证责任在用户:六个维度各从红灯起步,只有扎实证据(真实用户行为、具体数字、想清楚的差异)才往黄、绿调。灯色 🔴 红 = 有致命疑点或没说清 · 🟡 黄 = 有想法但证据不足 · 🟢 绿 = 有扎实证据。结论与建议仅基于你提供的信息 + 内置框架,不替代真实的用户验证。
+    </p>
+    <!-- {{REPORT_DATE}} -->
+    <p class="foot-sig">Product Restraint · 2026-05-30</p>
+  </footer>
+
+</main>
+</body>
+</html>

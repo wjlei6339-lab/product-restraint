@@ -11,8 +11,6 @@
 
 核心立场：**默认怀疑，但不无脑否定。**
 
-`SKILL.md` 是唯一真源，决定 skill 如何判断一个想法。
-
 ## 什么时候用
 
 当你想评估一个产品想法时，直接在 Claude Code 里描述它即可，例如：
@@ -43,6 +41,12 @@ skill 会自动触发，并从六个维度给出红 / 黄 / 绿判断：
 - 修改 `SKILL.md` 正文：保存后，下次触发就会使用新版内容。
 - 修改 `SKILL.md` frontmatter 里的 `description`：需要新开 Claude Code 会话才会重新加载触发条件。
 
+## 评审报告导出（HTML）
+
+在可来回交互的会话里，三部分评审给完后，skill 会再额外生成一份**专业、可离线打开、可打印转发**的 HTML 报告，落在当前工作目录（文件名形如 `产品克制-评审-<想法标题>-<日期>.html`）。
+
+它**参照定稿模版** `references/report-template.html` 填充——样式与版式固定、只有内容随评审变化，所以每份报告观感一致、专业度可控。非交互批处理（如 `claude -p`）或无法写文件时会自动跳过，不影响评审正文。
+
 ## 怎么修改
 
 最常改这几个文件：
@@ -51,6 +55,7 @@ skill 会自动触发，并从六个维度给出红 / 黄 / 绿判断：
 |---|---|
 | `SKILL.md` | skill 主体。改性格、评审流程、评分卡、输出模板。 |
 | `references/frameworks.md` | 框架资料。补充 Mom Test、Premortem、单位经济、护城河等判断依据。 |
+| `references/report-template.html` | 报告 HTML 模版（人类定稿）。改报告的样式、版式、配色、印刷适配。 |
 | `docs/design.md` | 设计说明。改核心方向前先看这里。 |
 
 如果想让 skill 更严格、更温和、输出更短、增加评审维度，优先改 `SKILL.md`。
@@ -69,9 +74,12 @@ skill 会自动触发，并从六个维度给出红 / 黄 / 绿判断：
 
 ```text
 product-restraint/
-├── SKILL.md
-├── references/frameworks.md
-├── docs/design.md
+├── SKILL.md                 # skill 主体
+├── references/
+│   ├── frameworks.md        # 框架资料(按需读)
+│   └── report-template.html # 报告 HTML 呈现模版(人类定稿)
+├── docs/                    # design.md + superpowers/{plans,specs}
+├── CLAUDE.md, AGENTS.md     # 给 Claude / 通用 agent 的项目说明
 └── README.md
 ```
 
