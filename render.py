@@ -56,3 +56,26 @@ def parse_scorecard(text):
             continue
         rows.append({'dim': dim, 'lamp': emoji, 'reason': reason})
     return rows
+
+
+def parse_detail_blocks(text):
+    """从「三、详细说明」里切出 body 与三个固定块。缺块返回 None,不报错。"""
+    anchors = [
+        ('premortem', re.compile(r'\*\*\s*Premortem')),
+        ('validation', re.compile(r'\*\*[^\n]*?最小成本验证')),
+        ('restart', re.compile(r'\*\*\s*重启条件')),
+    ]
+    positions = []
+    for key, pat in anchors:
+        m = pat.search(text)
+        if m:
+            positions.append((m.start(), key))
+    positions.sort()
+    blocks = {'body': text.strip(), 'premortem': None, 'validation': None, 'restart': None}
+    if not positions:
+        return blocks
+    blocks['body'] = text[:positions[0][0]].strip()
+    for i, (start, key) in enumerate(positions):
+        end = positions[i + 1][0] if i + 1 < len(positions) else len(text)
+        blocks[key] = text[start:end].strip()
+    return blocks

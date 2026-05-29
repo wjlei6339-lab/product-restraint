@@ -52,6 +52,34 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestDetailBlocks(unittest.TestCase):
+    def setUp(self):
+        self.blocks = R.parse_detail_blocks(R.split_sections(SAMPLE)['three'])
+
+    def test_body(self):
+        self.assertIn('约课收款已是红海', self.blocks['body'])
+
+    def test_premortem(self):
+        self.assertIn('圈外教练宁可免费用 Excel', self.blocks['premortem'])
+
+    def test_validation(self):
+        self.assertIn('10 个圈外教练', self.blocks['validation'])
+
+    def test_restart(self):
+        self.assertIn('主动抱怨', self.blocks['restart'])
+
+    def test_missing_restart_ok(self):
+        three = R.split_sections(SAMPLE)['three'].split('**重启条件')[0]
+        blocks = R.parse_detail_blocks(three)
+        self.assertIsNone(blocks['restart'])
+        self.assertIsNotNone(blocks['premortem'])
+
+    def test_no_blocks_all_body(self):
+        blocks = R.parse_detail_blocks('就是一段普通文字,没有特殊块。')
+        self.assertIn('普通文字', blocks['body'])
+        self.assertIsNone(blocks['premortem'])
+
+
 class TestScorecard(unittest.TestCase):
     def setUp(self):
         self.sec = R.split_sections(SAMPLE)
