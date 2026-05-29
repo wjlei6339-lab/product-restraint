@@ -138,3 +138,46 @@ def _strip_lead(content):
             rest = m.group(2)
             lines = ([rest] if rest.strip() else []) + lines[1:]
     return '\n'.join(lines).strip()
+
+
+def derive_title(explicit, eval_dirname=None, md_path=None):
+    """标题优先级:显式参数 > eval 目录名 > 文件名 > 兜底。"""
+    if explicit:
+        return explicit
+    if eval_dirname:
+        return re.sub(r'^eval-\d+-', '', eval_dirname).replace('-', ' ')
+    if md_path:
+        return os.path.splitext(os.path.basename(md_path))[0]
+    return '未命名想法'
+
+
+def derive_subtitle(preamble):
+    """取序言复述的第一句作副标题(去 --- 行、限长)。"""
+    if not preamble:
+        return None
+    text = re.sub(r'(?m)^---+$', '', preamble).strip()
+    if not text:
+        return None
+    first = re.split(r'[。\n]', text, 1)[0].strip()
+    if not first:
+        return None
+    return first[:48] + '…' if len(first) > 48 else first
+
+
+def parse_report(md, title=None, eval_dirname=None, md_path=None, date=''):
+    """把一份报告 Markdown 解析成结构化 dict。"""
+    sec = split_sections(md)
+    detail = parse_detail_blocks(sec['three'])
+    return {
+        'title': derive_title(title, eval_dirname=eval_dirname, md_path=md_path),
+        'subtitle': derive_subtitle(sec['preamble']),
+        'date': date,
+        'tendency': parse_tendency(sec['one']),
+        'preamble': sec['preamble'],
+        'scorecard': parse_scorecard(sec['one']),
+        'summary': sec['two'],
+        'detail_body': detail['body'],
+        'premortem': detail['premortem'],
+        'validation': detail['validation'],
+        'restart': detail['restart'],
+    }

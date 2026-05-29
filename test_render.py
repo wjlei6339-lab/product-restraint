@@ -52,6 +52,34 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestAssemble(unittest.TestCase):
+    def test_title_explicit_wins(self):
+        self.assertEqual(R.derive_title('我的想法', eval_dirname='eval-2-foo'), '我的想法')
+
+    def test_title_from_dirname(self):
+        self.assertEqual(R.derive_title(None, eval_dirname='eval-2-evidenced-decent-idea'),
+                         'evidenced decent idea')
+
+    def test_title_fallback(self):
+        self.assertEqual(R.derive_title(None), '未命名想法')
+
+    def test_subtitle_from_preamble(self):
+        sub = R.derive_subtitle('你想做一个给独立健身教练的小程序。后面还有。')
+        self.assertEqual(sub, '你想做一个给独立健身教练的小程序')
+
+    def test_subtitle_empty(self):
+        self.assertIsNone(R.derive_subtitle('---'))
+
+    def test_parse_report(self):
+        rep = R.parse_report(SAMPLE, title='健身教练小程序', date='2026-05-29')
+        self.assertEqual(rep['title'], '健身教练小程序')
+        self.assertEqual(rep['tendency'], '再想想')
+        self.assertEqual(len(rep['scorecard']), 6)
+        self.assertIn('最致命', rep['summary'])
+        self.assertIsNotNone(rep['premortem'])
+        self.assertEqual(rep['date'], '2026-05-29')
+
+
 class TestMarkdown(unittest.TestCase):
     def test_inline_bold_and_escape(self):
         self.assertEqual(R.md_inline('**粗** <x> `c`'),
