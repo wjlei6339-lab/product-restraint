@@ -181,3 +181,97 @@ def parse_report(md, title=None, eval_dirname=None, md_path=None, date=''):
         'validation': detail['validation'],
         'restart': detail['restart'],
     }
+
+
+HTML_DOC = '''<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<style>{style}</style></head>
+<body>{body}</body></html>'''
+
+STYLE = '''
+:root{--red:#c0392b;--amber:#b7791f;--green:#1e8449;--gray:#6b7280;--line:#e6e6e6;--ink:#1f2430;--soft:#fafafa}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+max-width:820px;margin:0 auto;padding:48px 28px;color:var(--ink);line-height:1.75;background:#fff;font-size:15.5px}
+h1{font-size:13px;letter-spacing:.18em;color:var(--gray);font-weight:600;margin:0 0 14px}
+.cover{border-bottom:2px solid var(--ink);padding-bottom:20px;margin-bottom:24px}
+.idea-title{font-size:27px;font-weight:700;line-height:1.3;margin:2px 0 6px}
+.subtitle{color:var(--gray);font-size:14px}
+.meta{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
+.meta .date{color:var(--gray);font-size:13px}
+.badge{display:inline-block;padding:5px 14px;border-radius:999px;color:#fff;font-weight:600;font-size:13px}
+.badge.red{background:var(--red)}.badge.amber{background:var(--amber)}.badge.green{background:var(--green)}.badge.gray{background:var(--gray)}
+nav.toc{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+nav.toc a{color:var(--gray);text-decoration:none}nav.toc a:hover{color:var(--ink);text-decoration:underline}
+h2{font-size:19px;margin:34px 0 14px;padding-left:11px;border-left:4px solid var(--ink)}
+table.scorecard{width:100%;border-collapse:collapse;font-size:14.5px}
+.scorecard th{text-align:left;color:var(--gray);font-weight:600;font-size:12.5px;border-bottom:2px solid var(--line);padding:8px 10px}
+.scorecard td{border-bottom:1px solid var(--line);padding:11px 10px;vertical-align:top}
+.scorecard .dim{white-space:nowrap;font-weight:600;border-left:4px solid transparent}
+.row-red .dim{border-left-color:var(--red)}.row-amber .dim{border-left-color:var(--amber)}.row-green .dim{border-left-color:var(--green)}
+.scorecard .lamp{white-space:nowrap;color:var(--gray)}
+.lamp-dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.lamp-red{background:var(--red)}.lamp-amber{background:var(--amber)}.lamp-green{background:var(--green)}.lamp-gray{background:var(--gray)}
+blockquote.summary{margin:0;background:var(--soft);border-left:4px solid var(--gray);padding:14px 18px;border-radius:0 6px 6px 0;font-size:15.5px}
+.box{padding:14px 18px;border-radius:0 6px 6px 0;margin:18px 0}
+.box h3{margin:0 0 8px;font-size:15px}
+.box.premortem{background:#fdf3f2;border-left:4px solid var(--red)}
+.box.validation{background:#f1faf4;border-left:4px solid var(--green)}
+.box.restart{background:var(--soft);border-left:4px solid var(--gray)}
+p{margin:10px 0}ul,ol{margin:10px 0;padding-left:22px}li{margin:5px 0}
+code{background:#f0f0f0;padding:1px 5px;border-radius:4px;font-size:.9em}
+hr{border:none;border-top:1px solid var(--line);margin:20px 0}
+.index-list{list-style:none;padding:0}
+.index-list li{border-bottom:1px solid var(--line)}
+.index-list a{display:flex;align-items:center;gap:12px;padding:13px 4px;text-decoration:none;color:var(--ink)}
+.index-list a:hover{background:var(--soft)}
+.idx-title{flex:1;font-weight:600}
+.mini{display:flex;gap:4px}
+@media print{body{max-width:none;padding:0;font-size:12pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+nav.toc{display:none}section{break-inside:avoid}
+.badge,.lamp-dot,.box,blockquote.summary{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+'''
+
+
+def _scorecard_html(scorecard):
+    rows = []
+    for s in scorecard:
+        cls, label = LAMP_MAP.get(s['lamp'], ('gray', '?'))
+        rows.append(
+            f'<tr class="row-{cls}"><td class="dim">{html_lib.escape(s["dim"])}</td>'
+            f'<td class="lamp"><span class="lamp-dot lamp-{cls}"></span>{label}</td>'
+            f'<td class="reason">{md_inline(s["reason"])}</td></tr>')
+    return ('<table class="scorecard"><thead><tr><th>维度</th><th>灯</th><th>理由</th></tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table>')
+
+
+def _box_html(kind, label, content):
+    if not content:
+        return ''
+    return f'<section class="box {kind}"><h3>{label}</h3>{md_block(_strip_lead(content))}</section>'
+
+
+def render_report_html(report):
+    tcls = TENDENCY_CLASS.get(report['tendency'], 'gray')
+    subtitle = (f'<div class="subtitle">{html_lib.escape(report["subtitle"])}</div>'
+                if report.get('subtitle') else '')
+    detail = md_block(report['detail_body'])
+    detail += _box_html('premortem', 'Premortem · 事前验尸', report['premortem'])
+    detail += _box_html('validation', '最小验证动作', report['validation'])
+    detail += _box_html('restart', '重启条件', report['restart'])
+    body = f'''<article>
+<div class="cover">
+<h1>产品克制 · 可行性评审报告</h1>
+<div class="idea-title">{html_lib.escape(report['title'])}</div>
+{subtitle}
+<div class="meta"><span class="date">{html_lib.escape(report.get('date', ''))}</span>
+<span class="badge {tcls}">总体倾向:{html_lib.escape(report['tendency'] or '—')}</span></div>
+</div>
+<nav class="toc"><a href="#s1">一、可行性评价</a><a href="#s2">二、简要概述</a><a href="#s3">三、详细说明</a></nav>
+<section id="s1"><h2>一、可行性评价</h2>{_scorecard_html(report['scorecard'])}</section>
+<section id="s2"><h2>二、简要概述</h2><blockquote class="summary">{md_block(report['summary'])}</blockquote></section>
+<section id="s3"><h2>三、详细说明</h2>{detail}</section>
+</article>'''
+    return HTML_DOC.format(title=html_lib.escape(report['title']) + ' · 评审报告', style=STYLE, body=body)

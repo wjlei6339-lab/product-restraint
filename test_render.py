@@ -52,6 +52,36 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestRenderHtml(unittest.TestCase):
+    def setUp(self):
+        self.rep = R.parse_report(SAMPLE, title='健身教练小程序', date='2026-05-29')
+        self.html = R.render_report_html(self.rep)
+
+    def test_is_html_doc(self):
+        self.assertTrue(self.html.lstrip().lower().startswith('<!doctype html>'))
+
+    def test_has_title_and_date(self):
+        self.assertIn('健身教练小程序', self.html)
+        self.assertIn('2026-05-29', self.html)
+
+    def test_has_tendency_badge(self):
+        self.assertIn('badge amber', self.html)
+        self.assertIn('再想想', self.html)
+
+    def test_has_all_six_dims(self):
+        for dim in R.DIMENSIONS:
+            self.assertIn(dim, self.html)
+
+    def test_has_blocks(self):
+        self.assertIn('box premortem', self.html)
+        self.assertIn('box validation', self.html)
+        self.assertIn('box restart', self.html)
+
+    def test_has_style_and_print(self):
+        self.assertIn('<style>', self.html)
+        self.assertIn('print-color-adjust', self.html)
+
+
 class TestAssemble(unittest.TestCase):
     def test_title_explicit_wins(self):
         self.assertEqual(R.derive_title('我的想法', eval_dirname='eval-2-foo'), '我的想法')
