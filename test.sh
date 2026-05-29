@@ -37,7 +37,7 @@ PY
   echo "▶ [eval $id] $name"
   echo "  prompt: $prompt"
   # 把想法作为用户消息丢给 claude;skill 会自动触发并产出三部分评审
-  claude -p "$prompt" > "$dest/output.md" 2>"$dest/stderr.log" \
+  claude -p "$prompt" </dev/null > "$dest/output.md" 2>"$dest/stderr.log" \
     && echo "  ✓ -> $dest/output.md" \
     || echo "  ✗ 失败,看 $dest/stderr.log"
 done
