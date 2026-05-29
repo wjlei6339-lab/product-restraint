@@ -52,5 +52,31 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestScorecard(unittest.TestCase):
+    def setUp(self):
+        self.sec = R.split_sections(SAMPLE)
+        self.rows = R.parse_scorecard(self.sec['one'])
+
+    def test_six_rows(self):
+        self.assertEqual(len(self.rows), 6)
+
+    def test_first_row(self):
+        self.assertEqual(self.rows[0],
+                         {'dim': '真需求度', 'lamp': '🟡', 'reason': '真在用 Excel 笨办法。'})
+
+    def test_lamp_emojis(self):
+        self.assertEqual([r['lamp'] for r in self.rows],
+                         ['🟡', '🔴', '🟡', '🔴', '🔴', '🟡'])
+
+    def test_skips_header_and_divider(self):
+        dims = [r['dim'] for r in self.rows]
+        self.assertNotIn('维度', dims)
+        self.assertNotIn('---', dims)
+
+    def test_lamp_map(self):
+        self.assertEqual(R.LAMP_MAP['🔴'][0], 'red')
+        self.assertEqual(R.LAMP_MAP['🟢'], ('green', '绿'))
+
+
 if __name__ == '__main__':
     unittest.main()

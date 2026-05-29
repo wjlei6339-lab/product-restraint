@@ -36,3 +36,23 @@ def parse_tendency(text):
     """从「总体倾向:X」抓出 别做 / 再想想 / 可以试。"""
     m = re.search(r'总体倾向[::]\s*\*{0,2}\s*(别做|再想想|可以试)', text)
     return m.group(1) if m else None
+
+
+def parse_scorecard(text):
+    """解析评分卡表格,返回 [{'dim','lamp','reason'}, ...]。只收含灯 emoji 的数据行。"""
+    rows = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith('|'):
+            continue
+        cells = [c.strip() for c in line.strip('|').split('|')]
+        if len(cells) < 3:
+            continue
+        dim, lamp, reason = cells[0], cells[1], cells[2]
+        if dim == '维度' or set(dim) <= set('-: '):  # 跳过表头与分隔行
+            continue
+        emoji = next((e for e in LAMP_MAP if e in lamp), None)
+        if not emoji:
+            continue
+        rows.append({'dim': dim, 'lamp': emoji, 'reason': reason})
+    return rows
