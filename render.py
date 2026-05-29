@@ -204,7 +204,7 @@ h1{font-size:13px;letter-spacing:.18em;color:var(--gray);font-weight:600;margin:
 .meta{display:flex;align-items:center;gap:14px;margin-top:14px;flex-wrap:wrap}
 .meta .date{color:var(--gray);font-size:13px}
 .badge{display:inline-block;padding:5px 14px;border-radius:999px;color:#fff;font-weight:600;font-size:13px}
-.badge.red{background:var(--red)}.badge.amber{background:var(--amber)}.badge.green{background:var(--green)}.badge.gray{background:var(--gray)}
+.badge.red{background:var(--red)}.badge.amber{background:#8a5800}.badge.green{background:var(--green)}.badge.gray{background:var(--gray)}
 nav.toc{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--line)}
 nav.toc a{color:var(--gray);text-decoration:none}nav.toc a:hover{color:var(--ink);text-decoration:underline}
 h2{font-size:19px;margin:34px 0 14px;padding-left:11px;border-left:4px solid var(--ink)}
