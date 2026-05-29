@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 这是什么
 
-这是一个 **Claude Code skill 项目**,不是应用程序代码库。交付物是 skill 本身(自然语言 prose),不是可编译/运行的程序。skill 名为 `product-restraint`(产品克制):一个**默认怀疑**的产品想法评审器,用六维评分卡(红/黄/绿)+ Premortem + 最小验证动作,帮用户在动手前判断一个产品/功能/创业想法值不值得做。
+这是一个 **Claude Code skill 项目**,不是应用程序代码库。核心交付物是 skill 本身(自然语言 prose);`render.py` 是围绕 skill 输出的确定性报告渲染层,不是第二个产品。skill 名为 `product-restraint`(产品克制):一个**默认怀疑**的产品想法评审器,用六维评分卡(红/黄/绿)+ Premortem + 最小验证动作,帮用户在动手前判断一个产品/功能/创业想法值不值得做。
 
-因此:**"写代码"在这里 = 编辑 `SKILL.md` 的 prose**。改 prose 就是改产品行为。
+因此:**"写代码"在这里主要 = 编辑 `SKILL.md` 的 prose**。改 prose 就是改产品行为;改 `render.py` 只改变报告呈现,不能改变评审判断。
 
 ## 唯一真源 + 软链接生效机制
 
@@ -22,6 +22,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 ./test.sh          # 跑 evals/evals.json 里全部用例,结果存到 workspace/iteration-<时间戳>/
 ./test.sh 0 2      # 只跑 id 为 0 和 2 的用例
+python3 -m unittest -v test_render.py  # 跑 HTML 渲染层单元测试
+python3 render.py --latest             # 渲染最新一批 eval 输出为 HTML + index
 ```
 
 `test.sh` 用 `claude -p` 把每个 eval 的 prompt 当用户消息丢进去,skill 自动触发并产出三部分评审,输出存到 `workspace/iteration-<stamp>/eval-<id>-<name>/output.md`。跑完**人工对照三个判断目标**(没有自动断言打分):
@@ -40,7 +42,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `references/frameworks.md` | 框架弹药库(Mom Test / Cagan 四风险 / Premortem / 单位经济 / TAM-SAM-SOM / 护城河)。**渐进式披露**:SKILL.md 里是浓缩版,只有需要展开"为什么这么判"时才按需读这份。 |
 | `evals/evals.json` | 3 个测试用例(弱套壳 / 模糊一句话 / 有证据的像样想法),含 `expected_output`。改了 skill 行为应同步审视这里的用例是否还覆盖关键场景。 |
 | `docs/design.md` | 设计决策记录(形态/默认立场/范围/结论形式),改动核心设计前先读它,理解原始权衡。 |
-| `workspace/iteration-N/` | 测试运行产物,按迭代组织。`stderr.log` 已 gitignore。 |
+| `render.py` | 报告渲染层。把固定三段 Markdown 报告解析为自包含 HTML、批次索引和打印友好页面。它只能呈现报告,不能改写评审逻辑。用法:`python3 render.py --latest`(最新一批+索引)/ `python3 render.py <file.md> -o out.html --title "想法"`(单份)。 |
+| `test_render.py` | `render.py` 的单元测试,覆盖解析、灯色、索引、HTML 基本结构。 |
+| `workspace/iteration-1/` | 已入库的基准样例,用于对照历史行为。 |
+| `workspace/iteration-<时间戳>/` | 本地测试运行产物,默认不入库。`stderr.log`、HTML 报告、缓存文件都应保持为本地产物。 |
 
 ## 编辑 skill 时必须守住的不变量
 
@@ -51,6 +56,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **拒绝套话否定(最重要)** —— 每个红灯必须给**具体到这个想法**的理由。判据:把理由里的产品名换成任何别的产品,如果还成立,它就是套话,必须重写。这条是 skill 价值的命门,任何修改都不能稀释它。
 4. **三部分输出模板,顺序固定** —— ①可行性评价(评分卡 + 总体倾向:别做/再想想/可以试)②简要概述(3-5 句,点出最致命 1-2 点)③详细说明(逐维度展开 + Premortem + 最小验证动作)。
 5. **给放行路径但门槛高** —— 结论"别做"也要给"什么条件下值得重启";结论"可以试"也要给"最该先用最小成本验证的那一件事"(优先《The Mom Test》式观察过去行为,而非问"会不会用")。
+6. **HTML 是渲染层,不是新行为** —— `render.py` 只把已生成的报告换种呈现,不得反向改变评审逻辑、维度、模板措辞。SKILL.md 里「评审之后落地 HTML」那步必须"失败 / 非交互即静默跳过",绝不影响三部分评审输出本身,也不污染 `claude -p` 评测产物(批量渲染由 `test.sh` 收尾统一做)。
 
 六个维度:真需求度、价值与差异、可行性、商业账、市场与时机、克制度。增减维度须同步改 SKILL.md 评分卡表、输出模板表头,以及 evals 预期。
 

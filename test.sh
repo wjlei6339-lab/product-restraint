@@ -44,4 +44,12 @@ done
 
 echo
 echo "全部完成。结果在:$OUTDIR"
+
+# 把本批报告渲染成专业 HTML + 汇总索引(渲染失败不阻断测试结论)
+if command -v python3 >/dev/null 2>&1; then
+  echo "渲染 HTML 报告..."
+  python3 render.py --latest || echo "  ⚠ HTML 渲染跳过(见上方错误)"
+fi
+
 echo "对照三个判断目标自查:1) 该狠时够狠且不套话  2) 信息少→缺失即风险  3) 好想法不被无脑否定"
+echo "HTML 报告:打开 $OUTDIR/index.html"
