@@ -275,3 +275,126 @@ def render_report_html(report):
 <section id="s3"><h2>三、详细说明</h2>{detail}</section>
 </article>'''
     return HTML_DOC.format(title=html_lib.escape(report['title']) + ' · 评审报告', style=STYLE, body=body)
+
+
+def render_index_html(entries, iter_name):
+    items = []
+    for e in entries:
+        mini = ''.join(
+            f'<span class="lamp-dot lamp-{LAMP_MAP.get(s["lamp"], ("gray", ""))[0]}" title="{html_lib.escape(s["dim"])}"></span>'
+            for s in e['scorecard'])
+        tcls = TENDENCY_CLASS.get(e['tendency'], 'gray')
+        items.append(
+            f'<li><a href="{html_lib.escape(e["href"])}">'
+            f'<span class="idx-title">{html_lib.escape(e["title"])}</span>'
+            f'<span class="badge {tcls}">{html_lib.escape(e["tendency"] or "—")}</span>'
+            f'<span class="mini">{mini}</span></a></li>')
+    body = (f'<div class="cover"><h1>产品克制 · 评审汇总</h1>'
+            f'<div class="idea-title">{html_lib.escape(iter_name)}</div></div>'
+            f'<ul class="index-list">{"".join(items)}</ul>')
+    return HTML_DOC.format(title='评审汇总 · ' + html_lib.escape(iter_name), style=STYLE, body=body)
+
+
+def _date_of(path):
+    try:
+        return datetime.fromtimestamp(os.path.getmtime(path)).strftime('%Y-%m-%d')
+    except OSError:
+        return ''
+
+
+def _eval_dirname_of(md_path):
+    for part in os.path.normpath(md_path).split(os.sep):
+        if re.match(r'eval-\d+', part):
+            return part
+    return None
+
+
+def find_all_iterations(workspace='workspace'):
+    dirs = [d for d in glob.glob(os.path.join(workspace, 'iteration-*')) if os.path.isdir(d)]
+    return sorted(dirs, key=os.path.getmtime)
+
+
+def find_latest_iteration(workspace='workspace'):
+    dirs = find_all_iterations(workspace)
+    return dirs[-1] if dirs else None
+
+
+def find_report_mds(iter_dir):
+    return sorted(glob.glob(os.path.join(iter_dir, '**', 'output.md'), recursive=True))
+
+
+def render_file(md_path, out=None, title=None):
+    with open(md_path, encoding='utf-8') as f:
+        md = f.read()
+    report = parse_report(md, title=title, eval_dirname=_eval_dirname_of(md_path),
+                          md_path=md_path, date=_date_of(md_path))
+    if out is None:
+        out = os.path.splitext(md_path)[0] + '.html'
+    with open(out, 'w', encoding='utf-8') as f:
+        f.write(render_report_html(report))
+    print(f'  ✓ {out}')
+    return out
+
+
+def render_iteration(iter_dir):
+    mds = find_report_mds(iter_dir)
+    if not mds:
+        print(f'  ⚠ {iter_dir} 无 output.md,跳过', file=sys.stderr)
+        return
+    entries = []
+    for md in mds:
+        try:
+            out = os.path.join(os.path.dirname(md), 'report.html')
+            render_file(md, out=out)
+            with open(md, encoding='utf-8') as f:
+                rep = parse_report(f.read(), eval_dirname=_eval_dirname_of(md),
+                                   md_path=md, date=_date_of(md))
+            entries.append({'title': rep['title'], 'tendency': rep['tendency'],
+                            'scorecard': rep['scorecard'],
+                            'href': os.path.relpath(out, iter_dir)})
+        except Exception as e:  # 单份坏掉不拖垮整批
+            print(f'  ⚠ 渲染失败 {md}: {e}', file=sys.stderr)
+    idx = os.path.join(iter_dir, 'index.html')
+    with open(idx, 'w', encoding='utf-8') as f:
+        f.write(render_index_html(entries, os.path.basename(iter_dir)))
+    print(f'  ✓ {idx}(共 {len(entries)} 份)')
+
+
+def build_argparser():
+    import argparse
+    p = argparse.ArgumentParser(description='把「产品克制」评审报告渲染成专业 HTML')
+    p.add_argument('file', nargs='?', help='单个报告 md 路径')
+    p.add_argument('-o', '--output', help='输出 html 路径(单文件模式)')
+    p.add_argument('--title', help='想法标题(覆盖自动推断)')
+    p.add_argument('--latest', action='store_true', help='渲染最新 iteration + 索引')
+    p.add_argument('--all', action='store_true', help='渲染所有 iteration + 各自索引')
+    p.add_argument('--workspace', default='workspace', help='workspace 目录(默认 ./workspace)')
+    return p
+
+
+def main(argv=None):
+    args = build_argparser().parse_args(argv)
+    if args.latest:
+        it = find_latest_iteration(args.workspace)
+        if not it:
+            print('未找到 iteration 目录', file=sys.stderr)
+            return 1
+        render_iteration(it)
+        return 0
+    if args.all:
+        its = find_all_iterations(args.workspace)
+        if not its:
+            print('未找到 iteration 目录', file=sys.stderr)
+            return 1
+        for it in its:
+            render_iteration(it)
+        return 0
+    if args.file:
+        render_file(args.file, out=args.output, title=args.title)
+        return 0
+    build_argparser().print_help()
+    return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

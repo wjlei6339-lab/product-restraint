@@ -52,6 +52,38 @@ class TestSplit(unittest.TestCase):
         self.assertIsNone(R.parse_tendency('没有倾向字样'))
 
 
+class TestIndexAndFs(unittest.TestCase):
+    def test_render_index_html(self):
+        entries = [{'title': '想法甲', 'tendency': '别做',
+                    'scorecard': R.parse_report(SAMPLE)['scorecard'], 'href': 'eval-0/report.html'}]
+        html = R.render_index_html(entries, 'iteration-x')
+        self.assertIn('想法甲', html)
+        self.assertIn('eval-0/report.html', html)
+        self.assertIn('badge red', html)
+        self.assertIn('iteration-x', html)
+
+    def test_eval_dirname_of(self):
+        self.assertEqual(R._eval_dirname_of('workspace/iteration-9/eval-2-foo/output.md'),
+                         'eval-2-foo')
+        self.assertIsNone(R._eval_dirname_of('a/b/output.md'))
+
+    def test_find_latest_iteration(self):
+        import tempfile, os, time
+        with tempfile.TemporaryDirectory() as d:
+            old = os.path.join(d, 'iteration-1')
+            new = os.path.join(d, 'iteration-2')
+            os.makedirs(old)
+            os.makedirs(new)
+            os.utime(old, (1000, 1000))
+            os.utime(new, (2000, 2000))
+            self.assertEqual(R.find_latest_iteration(d), new)
+
+    def test_find_latest_none(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            self.assertIsNone(R.find_latest_iteration(d))
+
+
 class TestRenderHtml(unittest.TestCase):
     def setUp(self):
         self.rep = R.parse_report(SAMPLE, title='健身教练小程序', date='2026-05-29')
