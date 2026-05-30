@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产品克制 · 评审报告 — 房地产 GEO 系统</title>
+
+<style>
+  :root {
+    /* 纸与墨 —— 暖白纸底,墨色文字,全篇唯一强色彩留给灯色 */
+    --paper:        #faf8f3;
+    --paper-edge:   #f4f1e8;
+    --card:         #fffdf8;   /* 卡片暖白:与纸底同属暖色家族,替代生硬纯白 #fff */
+    --ink:          #1f1b16;
+    --ink-soft:     #5c554a;
+    --ink-faint:    #736a57;   /* 加深至 ~5:1,过 WCAG AA;同色相,仅压低亮度 */
+    --line:         #e6dfd0;
+    --line-strong:  #d3cab6;
+
+    /* 灯色三态 —— 红 / 琥珀 / 绿 */
+    --red:        #b23b2e;
+    --red-deep:   #8c2c21;
+    --red-bg:     #f9efed;
+    --amber:      #e09110;   /* 明亮琥珀:仅用于灯点 */
+    --amber-deep: #8a5c0c;   /* 深琥珀:用于徽章底色,保证白字 WCAG AA */
+    --amber-bg:   #fbf2df;
+    --green:      #2f7d54;
+    --green-deep: #235f3f;
+    --green-bg:   #eef4ee;
+
+    --font-serif: "Songti SC", "STSong", "Source Han Serif SC", "Noto Serif CJK SC", Georgia, "Times New Roman", serif;
+    --font-sans:  "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", -apple-system, "Helvetica Neue", sans-serif;
+    --font-mono:  "SF Mono", "JetBrains Mono", "Menlo", "Consolas", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* 选区高亮:暖羊皮纸调,呼应纸底而非默认蓝 */
+  ::selection { background: #e8dcbe; color: var(--ink); }
+
+  /* 中文阅读优化:pretty 收尾避免行尾「孤字」与不良断行 */
+  .restatement, .summary, .reason, .dim-body,
+  .block-body, .v-tagline, .foot-method { text-wrap: pretty; }
+  .headline, .restatement, .summary, .reason, .dim-body,
+  .block-body, .cover-tagline, .decision-card strong,
+  .gap-callout, .evidence-card p, .foot-method {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    padding: 48px 20px 80px;
+    overflow-x: hidden;
+    background:
+      radial-gradient(900px 600px at 12% -8%, #fdfcf8 0%, transparent 60%),
+      var(--paper-edge);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ── 纸张 ─────────────────────────────────────────── */
+  .sheet {
+    position: relative;
+    width: 100%;
+    max-width: 840px;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(31,27,22,.04), 0 18px 50px -28px rgba(31,27,22,.28);
+    padding: 0 0 4px;
+    overflow: hidden;
+  }
+  /* 顶部三色细带 —— 红→琥珀→绿,呼应评审三态 */
+  .sheet::before {
+    content: "";
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg,
+      var(--red) 0%, var(--red) 33%,
+      var(--amber) 33%, var(--amber) 66%,
+      var(--green) 66%, var(--green) 100%);
+  }
+
+  .pad { padding: 0 clamp(28px, 6vw, 64px); }
+
+  /* ── 报头 ─────────────────────────────────────────── */
+  header { padding-top: 38px; padding-bottom: 30px; }
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand .mark {
+    width: 3px;
+    height: 34px;
+    background: var(--ink);
+    flex: none;
+  }
+  .brand .name { line-height: 1.25; }
+  .brand .name .zh {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .12em;
+  }
+  .brand .name .en {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .doc-meta {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    line-height: 1.9;
+    font-variant-numeric: tabular-nums;   /* 日期等宽数字 */
+  }
+  .doc-meta .date { color: var(--ink-soft); }
+
+  .headline {
+    margin: 26px 0 0;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(27px, 5vw, 38px);
+    line-height: 1.28;
+    letter-spacing: .005em;
+    text-wrap: balance;   /* 多行标题左右配平,避免长短悬殊 */
+    overflow-wrap: anywhere;
+  }
+  
+
+  .restatement {
+    margin: 18px 0 0;
+    padding-left: 16px;
+    border-left: 2px solid var(--line-strong);
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.7;
+  }
+  .restatement .label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+
+  /* ── 首页 · 结论速览(封面图表)──────────────────── */
+  .cover-wrap { padding-top: 30px; padding-bottom: 6px; }
+  .cover {
+    display: grid;
+    grid-template-columns: minmax(0, 312px) 1fr;
+    gap: clamp(18px, 4vw, 44px);
+    align-items: center;
+    padding: 26px clamp(20px, 3.2vw, 32px);
+    border: 1px solid var(--line-strong);
+    border-left-width: 6px;
+    border-radius: 6px;
+    background: var(--card);
+  }
+  .cover > * { min-width: 0; }
+  .cover--dont    { border-left-color: var(--red);   }
+  .cover--rethink { border-left-color: var(--amber); }
+  .cover--try     { border-left-color: var(--green); }
+
+  /* 六维雷达 —— 内→外三环 = 红/黄/绿;形状越大越好,凹陷即风险 */
+  .radar-fig { margin: 0; min-width: 0; }
+  .radar { display: block; width: 100%; max-width: 100%; min-width: 0; height: auto; }
+  .radar .grid  { fill: none; stroke: var(--line); stroke-width: 1; }
+  .radar .grid--outer { stroke: var(--line-strong); }
+  .radar .spoke { stroke: var(--line); stroke-width: 1; }
+  .radar .axis-label {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    fill: var(--ink-soft);
+  }
+  .radar .area { stroke-width: 2; stroke-linejoin: round; }
+  /* 多边形填色随总体倾向走;改 .cover 修饰类即切换 */
+  .cover--dont    .radar .area { fill: rgba(178,59,46,.15);  stroke: var(--red-deep);   }
+  .cover--rethink .radar .area { fill: rgba(224,145,16,.18); stroke: var(--amber-deep); }
+  .cover--try     .radar .area { fill: rgba(47,125,84,.15);  stroke: var(--green-deep); }
+  .radar .dot { stroke: var(--card); stroke-width: 1.5; }
+  .radar .dot--red   { fill: var(--red);   }
+  .radar .dot--amber { fill: var(--amber); }
+  .radar .dot--green { fill: var(--green); }
+  .radar-cap {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .02em;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+  .radar-cap .k { font-weight: 700; }
+  .radar-cap .k--red   { color: var(--red-deep);   }
+  .radar-cap .k--amber { color: var(--amber-deep); }
+  .radar-cap .k--green { color: var(--green-deep); }
+
+  /* 右侧结论读出 —— 总体倾向 + 一句话 + 数字 */
+  .cover-readout { min-width: 0; }
+  .cover-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 8px;
+  }
+  .cover-verdict {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 46px);
+    line-height: 1;
+    margin: 0;
+  }
+  .cover--dont    .cover-verdict { color: var(--red-deep);   }
+  .cover--rethink .cover-verdict { color: var(--amber-deep); }
+  .cover--try     .cover-verdict { color: var(--green-deep); }
+  .cover-tagline {
+    margin: 13px 0 0;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+  .decision-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, .42fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .decision-card {
+    min-width: 0;
+    padding: 12px 13px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: rgba(255,253,248,.72);
+  }
+  .decision-card span,
+  .gap-callout span,
+  .evidence-card span {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .decision-card strong {
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .decision-card--action {
+    border-left: 4px solid var(--ink);
+  }
+  .evidence-meter strong {
+    font-family: var(--font-serif);
+    font-size: 25px;
+    line-height: 1.15;
+  }
+  .gap-callout {
+    margin: 12px 0 0;
+    padding: 11px 13px;
+    border-left: 4px solid var(--red);
+    background: var(--red-bg);
+    color: var(--red-deep);
+    font-size: 13.5px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .evidence-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .evidence-card {
+    min-width: 0;
+  }
+  .evidence-card p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    line-height: 1.62;
+    overflow-wrap: anywhere;
+  }
+  /* 数字 + 一句话解读 */
+  .tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    margin: 20px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .tally-item {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    min-width: 0;
+  }
+  .tally-num {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 29px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+  .tally-num.n--red   { color: var(--red);   }
+  .tally-num.n--amber { color: var(--amber-deep); }
+  .tally-num.n--green { color: var(--green); }
+  .tally-cap {
+    font-size: 12px;
+    color: var(--ink-faint);
+    line-height: 1.45;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tally-cap b {
+    display: block;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* 复述段降为次要:小、压灰,紧贴报头标题下方,保留「我理解你想做的」标签 */
+  .restatement--quiet {
+    margin: 18px 0 0;
+    border-left-color: var(--line);
+    color: var(--ink-faint);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .rule { height: 1px; background: var(--line); margin: 0; border: 0; }
+  .rule--soft { background: var(--line); opacity: .7; }
+
+  /* ── 章节标题 ─────────────────────────────────────── */
+  section { padding-top: 48px; padding-bottom: 14px; }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 0 28px;
+  }
+  .sec-num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--ink-faint);
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 3px 11px;
+    flex: none;
+    white-space: nowrap;
+  }
+  .sec-title {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: .03em;
+    margin: 0;
+  }
+
+  /* ── 评分卡表格 ───────────────────────────────────── */
+  .scorecard {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  .scorecard caption {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding-bottom: 14px;
+  }
+  .scorecard th, .scorecard td {
+    text-align: left;
+    padding: 18px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .scorecard thead th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1.5px solid var(--line-strong);
+    padding-top: 0;
+  }
+  .scorecard tbody th {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+    width: 1%;
+    color: var(--ink);
+  }
+  .scorecard .col-light { width: 1%; white-space: nowrap; }
+  .scorecard .reason { color: var(--ink-soft); line-height: 1.78; }
+  .scorecard tbody tr:last-child th,
+  .scorecard tbody tr:last-child td { border-bottom: 0; }
+
+  /* 灯徽章:圆点 + 文字标签(不只靠颜色,印刷/无障碍友好) */
+  .light {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 3px 10px 3px 8px;
+    border-radius: 999px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .light::before {
+    content: "";
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex: none;
+  }
+  .light--red   { color: var(--red-deep);   border-color: #e7c4be; background: var(--red-bg); }
+  .light--red::before   { background: var(--red); }
+  .light--amber { color: var(--amber-deep); border-color: #ecd6a4; background: var(--amber-bg); }
+  .light--amber::before { background: var(--amber); }  /* 灯点保持明亮琥珀 */
+  .light--green { color: var(--green-deep); border-color: #bcd8c4; background: var(--green-bg); }
+  .light--green::before { background: var(--green); }
+
+  /* ── 简要概述 ─────────────────────────────────────── */
+  .summary {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    line-height: 1.9;
+    color: var(--ink);
+    position: relative;
+    margin: 0;
+    padding: 8px 0 8px 28px;
+  }
+  .summary::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--ink);
+  }
+
+  /* ── 详细 · 逐维度展开 ────────────────────────────── */
+  .dim {
+    padding: 24px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .dim:last-of-type { border-bottom: 0; }
+  .dim-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .dim-name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 17px;
+    margin: 0;
+  }
+  .dim-body { color: var(--ink-soft); margin: 0; line-height: 1.82; }
+
+  /* ── 强调块:Premortem / 验证 / 重启 ───────────────── */
+  .block {
+    margin-top: 32px;
+    padding: 24px 26px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--card);
+  }
+  .block-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  .block-label .glyph {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .block-body { margin: 0; color: var(--ink-soft); line-height: 1.82; }
+  .block-body strong { color: var(--ink); font-weight: 700; }
+
+  /* Premortem —— 暗红警示,克制 */
+  .block--premortem {
+    border-left: 5px solid var(--red);
+    background: var(--red-bg);
+  }
+  .block--premortem .block-label { color: var(--red-deep); }
+
+  /* 最小验证动作 —— 行动卡,墨色强调 */
+  .block--validate {
+    border-left: 5px solid var(--ink);
+    background: var(--card);
+  }
+  .block--validate .block-label { color: var(--ink); }
+  .block--validate .block-body { color: var(--ink); }
+
+  /* 放行 / 重启 —— 弱化,虚线 */
+  .block--restart {
+    border: 1px dashed var(--line-strong);
+    background: transparent;
+  }
+  .block--restart .block-label { color: var(--green-deep); }
+
+  /* ── 页脚 ─────────────────────────────────────────── */
+  footer {
+    padding-top: 28px;
+    padding-bottom: 34px;
+    margin-top: 38px;
+    border-top: 1px solid var(--line);
+  }
+  .foot-method {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    line-height: 1.7;
+    margin: 0;
+  }
+  .foot-method strong { color: var(--ink-soft); font-weight: 600; }
+  .foot-sig {
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 静态报告:不做入场动画,保证截图、打印和批量渲染稳定 ───────── */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .anim { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .anim { animation: none; }
+  }
+
+  /* ── 打印 ─────────────────────────────────────────── */
+  @page { margin: 16mm 14mm; }
+  @media print {
+    body { padding: 0; background: #fff; font-size: 11.5pt; }
+    .sheet {
+      max-width: none; border: 0; box-shadow: none;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .anim { opacity: 1 !important; animation: none !important; }
+    section, .block, .dim, .cover { break-inside: avoid; }
+    .sec-head { break-after: avoid; }
+    footer { break-inside: avoid; }
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 36px 12px 60px; }
+    .sheet {
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
+    }
+    .pad {
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    .pad > * {
+      max-width: 280px;
+    }
+    header { padding-top: 30px; padding-bottom: 24px; }
+    .masthead { gap: 12px; }
+    .doc-meta {
+      width: 100%;
+      text-align: left;
+      letter-spacing: .12em;
+      line-height: 1.7;
+    }
+    .headline {
+      font-size: 28px;
+      line-height: 1.32;
+    }
+    /* 速览卡:窄屏改为上下堆叠,雷达居中限宽 */
+    .cover {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 22px;
+      padding: 20px 14px;
+      width: 100%;
+    }
+    .radar-fig { width: 100%; max-width: 240px; margin: 0 auto; }
+    .decision-row,
+    .evidence-panel { grid-template-columns: minmax(0, 1fr); }
+    .tally {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .tally-item {
+      display: block;
+      min-width: 0;
+    }
+    .tally-cap {
+      display: block;
+      margin-top: 4px;
+    }
+    section { padding-top: 38px; padding-bottom: 12px; }
+    .sec-head { margin-bottom: 22px; }
+    .summary {
+      font-size: 18px;
+      line-height: 1.86;
+      padding-left: 24px;
+    }
+    .dim { padding: 22px 0; }
+    .dim-head { margin-bottom: 10px; }
+    .dim-body,
+    .block-body { line-height: 1.78; }
+    .block {
+      margin-top: 28px;
+      padding: 22px 18px;
+    }
+    .scorecard,
+    .scorecard tbody,
+    .scorecard tr,
+    .scorecard th,
+    .scorecard td {
+      display: block;
+      width: 100%;
+    }
+    .scorecard { font-size: 14px; }
+    .scorecard thead { display: none; }
+    .scorecard caption {
+      display: block;
+      width: 100%;
+      padding-bottom: 8px;
+    }
+    .scorecard tbody tr {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .scorecard tbody tr:last-child { border-bottom: 0; }
+    .scorecard th,
+    .scorecard td {
+      border-bottom: 0;
+      padding: 0;
+    }
+    .scorecard tbody th {
+      width: 100%;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
+    .scorecard .col-light {
+      width: auto;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
+    .scorecard .reason {
+      line-height: 1.68;
+      overflow-wrap: anywhere;
+    }
+  }
+
+</style>
+</head>
+
+<body>
+<main class="sheet">
+
+  <!-- ══ 报头 ══ -->
+  <header class="pad anim">
+    <div class="masthead">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="name">
+          <span class="zh">产品克制</span><br>
+          <span class="en">Product Restraint</span>
+        </span>
+      </div>
+      <div class="doc-meta">
+        <div>评审报告 · Review</div>
+        
+        <div class="date">2026-05-30</div>
+      </div>
+    </div>
+
+    
+    <h1 class="headline">房地产 GEO 系统</h1>
+
+    
+    <p class="restatement restatement--quiet">
+      <span class="label">我理解你想做的</span>
+      面向房地产行业做一个 GEO(Generative Engine Optimization)系统,帮助项目、房企或中介在 AI 问答和生成式搜索里被更准确、更频繁地引用或推荐。当前描述还没说明具体客户、现状方案和付费路径,所以评审只能按“信息缺失即风险”处理。
+    </p>
+  </header>
+
+  
+  <section class="pad anim cover-wrap">
+    <div class="cover cover--rethink">
+
+      <!-- 左:六维雷达(形状越大越好,凹陷即风险)。轴位置与维度名固定不动。 -->
+      <figure class="radar-fig">
+        <svg class="radar" viewBox="0 0 340 286" role="img"
+             aria-label="六维评审雷达:真需求度红、价值与差异红、可行性黄、商业账红、市场与时机黄、克制度红">
+          <!-- 网格三环:由内到外 = 红 / 黄 / 绿(固定) -->
+          <polygon class="grid" points="170,119 196.9,134.5 196.9,165.5 170,181 143.1,165.5 143.1,134.5"/>
+          <polygon class="grid" points="170,89 222.8,119.5 222.8,180.5 170,211 117.2,180.5 117.2,119.5"/>
+          <polygon class="grid grid--outer" points="170,58 249.7,104 249.7,196 170,242 90.3,196 90.3,104"/>
+          <!-- 六条轴(固定) -->
+          <line class="spoke" x1="170" y1="150" x2="170"   y2="58"/>
+          <line class="spoke" x1="170" y1="150" x2="249.7" y2="104"/>
+          <line class="spoke" x1="170" y1="150" x2="249.7" y2="196"/>
+          <line class="spoke" x1="170" y1="150" x2="170"   y2="242"/>
+          <line class="spoke" x1="170" y1="150" x2="90.3"  y2="196"/>
+          <line class="spoke" x1="170" y1="150" x2="90.3"  y2="104"/>
+          
+          <polygon class="area" points="170,119 196.9,134.5 222.8,180.5 170,181 117.2,180.5 143.1,134.5"/>
+          
+          <circle class="dot dot--red"   cx="170"   cy="119"   r="4.5"/>
+          <circle class="dot dot--red"   cx="196.9" cy="134.5" r="4.5"/>
+          <circle class="dot dot--amber" cx="222.8" cy="180.5" r="4.5"/>
+          <circle class="dot dot--red"   cx="170"   cy="181"   r="4.5"/>
+          <circle class="dot dot--amber" cx="117.2" cy="180.5" r="4.5"/>
+          <circle class="dot dot--red"   cx="143.1" cy="134.5" r="4.5"/>
+          <!-- 维度标签(固定不动) -->
+          <text class="axis-label" x="170" y="41"  text-anchor="middle">真需求度</text>
+          <text class="axis-label" x="268" y="98"  text-anchor="start">价值与差异</text>
+          <text class="axis-label" x="268" y="211" text-anchor="start">可行性</text>
+          <text class="axis-label" x="170" y="267" text-anchor="middle">商业账</text>
+          <text class="axis-label" x="72"  y="211" text-anchor="end">市场与时机</text>
+          <text class="axis-label" x="72"  y="98"  text-anchor="end">克制度</text>
+        </svg>
+        <figcaption class="radar-cap">
+          内→外 三环 = <span class="k k--red">红</span> · <span class="k k--amber">黄</span> · <span class="k k--green">绿</span>　仅表示风险分布,不是精确评分
+        </figcaption>
+      </figure>
+
+      <!-- 右:总体倾向 + 一句话 + 数字 -->
+      <div class="cover-readout">
+        <p class="cover-label">评审结论 · At a glance</p>
+        
+        <p class="cover-verdict">再想想</p>
+        
+        <p class="cover-tagline">房地产获客贵,GEO 有时机,但现在最大风险是从热词出发,还没证明客户会为它买单。</p>
+        <div class="decision-row">
+          <div class="decision-card decision-card--action next-action">
+            <span>下一步动作</span>
+            <strong>先访谈 10 个房地产营销负责人,验证他们过去是否已为 AI 搜索曝光或内容引用投入时间、预算或替代方案。</strong>
+          </div>
+          <div class="decision-card evidence-meter">
+            <span>证据充分度</span>
+            <strong>低</strong>
+          </div>
+        </div>
+        
+        <p class="gap-callout"><span>最大缺口</span>缺少真实客户为房地产 GEO 花钱、花时间或主动寻找解决方案的行为证据。</p>
+        
+        <div class="tally">
+          <div class="tally-item">
+            <span class="tally-num n--red">4</span>
+            <span class="tally-cap"><b>红灯</b>有致命疑点 / 没说清</span>
+          </div>
+          <div class="tally-item">
+            <span class="tally-num n--amber">2</span>
+            <span class="tally-cap"><b>黄灯</b>有想法但证据不足</span>
+          </div>
+          <div class="tally-item">
+            <span class="tally-num n--green">0</span>
+            <span class="tally-cap"><b>绿灯</b>有扎实证据</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evidence-panel">
+        <div class="evidence-card">
+          <span>已确认事实</span>
+          <p>用户想做垂直行业 GEO 系统,行业选择是房地产;除此之外,尚未提供目标客户、现状方案、预算或验证证据。</p>
+        </div>
+        <div class="evidence-card">
+          <span>关键假设</span>
+          <p>房地产客户会把 AI 问答曝光视作获客问题,且 GEO 优化能被归因到线索、到访或成交。</p>
+        </div>
+        <div class="evidence-card">
+          <span>最大缺口</span>
+          <p>没有证据显示房企、中介或项目营销方已经为 AI 搜索可见性付出真实成本。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ══ 一、可行性评价 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART I</span>
+      <h2 class="sec-title">一、可行性评价</h2>
+    </div>
+
+    <!-- 总体倾向 + 一句话已由首页「结论速览」卡承担,此处不再重复;PART I 直接给评分卡 -->
+    <table class="scorecard">
+      <caption>六维评分卡</caption>
+      <thead>
+        <tr>
+          <th scope="col">维度</th>
+          <th scope="col" class="col-light">灯</th>
+          <th scope="col">一句话理由</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">真需求度</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <td class="reason">你只说了“房地产 GEO 系统”,还没说明房地产公司现在是否真的为 AI 搜索曝光、内容引用或获客归因付出成本。</td>
+        </tr>
+        <tr>
+          <th scope="row">价值与差异</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <td class="reason">如果只是把 GEO 方法套到房地产内容上,SEO 代理商、房产 SaaS、CRM 厂商或营销服务商都能顺手做。</td>
+        </tr>
+        <tr>
+          <th scope="row">可行性</th>
+          <td class="col-light"><span class="light light--amber">黄</span></td>
+          <td class="reason">监测 AI 问答、整理项目知识库、生成内容这些能做,但“影响 AI 推荐/引用结果”很难被稳定承诺。</td>
+        </tr>
+        <tr>
+          <th scope="row">商业账</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <td class="reason">房地产客单价高,但当前没看到谁付费、按什么口径计费、如何证明带来线索或成交。</td>
+        </tr>
+        <tr>
+          <th scope="row">市场与时机</th>
+          <td class="col-light"><span class="light light--amber">黄</span></td>
+          <td class="reason">GEO 是新趋势,房地产也重获客,但买房决策仍强依赖平台、经纪人、地图、本地口碑和线下转化。</td>
+        </tr>
+        <tr>
+          <th scope="row">克制度</th>
+          <td class="col-light"><span class="light light--red">红</span></td>
+          <td class="reason">目前更像“GEO 很热,找个垂直行业套进去”,还不是从明确客户痛点倒推出来的产品。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="rule rule--soft">
+
+  <!-- ══ 二、简要概述 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART II</span>
+      <h2 class="sec-title">二、简要概述</h2>
+    </div>
+
+    
+    <p class="summary">这个想法不是完全没戏,因为房地产获客贵、内容多、区域化强,确实可能存在“AI 搜索时代怎么被推荐”的新需求。但现在最大问题是:你还没有证明房地产客户已经在为这个问题花钱或焦虑,也没有说清楚你比现有营销服务商多出什么不可替代的能力。别先做“系统”,先验证有没有 5 个房地产客户愿意为“AI 问答中更常被准确引用/推荐”付费。</p>
+  </section>
+
+  <hr class="rule rule--soft">
+
+  <!-- ══ 三、详细说明 ══ -->
+  <section class="pad anim">
+    <div class="sec-head">
+      <span class="sec-num">PART III</span>
+      <h2 class="sec-title">三、详细说明</h2>
+    </div>
+
+    <!-- 逐维度展开:只展开值得展开的(红灯 + 关键黄灯必展,绿灯可省)。
+         下面是 4 个 article.dim;按本次评审需要增删整块,并同步维度名/灯/正文。 -->
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">真需求度</h3>
+      </div>
+      <p class="dim-body">要小心把“GEO 是趋势”误当成“房地产客户有预算”。开发商、中介、商业地产招商方真正买单的通常是线索、到访、成交,而不是抽象的 AI 曝光。当前描述没有证明他们已经为这个问题花钱、花时间或主动寻找替代方案。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">价值与差异</h3>
+      </div>
+      <p class="dim-body">如果产品只是监控 ChatGPT、豆包、DeepSeek 怎么回答某楼盘,再给内容优化建议,这很容易被营销公司、SEO 工具或房产 SaaS 复制。真正差异可能来自独有房源数据、成交数据、区域知识库、CRM 闭环或渠道资源;这些目前都没有被说清。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--amber">黄</span>
+        <h3 class="dim-name">可行性</h3>
+      </div>
+      <p class="dim-body">做监测面板、项目知识库和内容建议可行;难点在于模型答案不稳定、不同平台黑箱、归因链条长。你可以做“观察和建议”,但不能轻易承诺“做了就会被 AI 推荐”。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">商业账</h3>
+      </div>
+      <p class="dim-body">房地产行业愿意为获客花钱,但会追 ROI。GEO 如果不能证明影响有效线索、到访或成交,就容易变成一份漂亮但不可续费的监测报告。现在还没有计费口径、获客成本、交付成本和效果归因的粗账。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--amber">黄</span>
+        <h3 class="dim-name">市场与时机</h3>
+      </div>
+      <p class="dim-body">时机有一点成立,AI 搜索正在改变信息入口;房地产又是高客单、重内容、重区域的行业。但买房决策不是纯线上搜索决策,仍强依赖平台、经纪人、地图、本地口碑和线下带看,GEO 可能只是获客链路里的小环节。</p>
+    </article>
+
+    <article class="dim">
+      <div class="dim-head">
+        <span class="light light--red">红</span>
+        <h3 class="dim-name">克制度</h3>
+      </div>
+      <p class="dim-body">当前描述太短,更像从技术热词出发:先看到 GEO 热,再找一个垂直行业套进去。这个方向要成立,必须反过来:先有明确房地产客户反复抱怨“AI 问答里搜不到我/说错我/推荐竞品”,再把 GEO 作为解决手段。</p>
+    </article>
+
+    <div class="block block--premortem">
+      <p class="block-label"><span class="glyph" aria-hidden="true">⚱</span>事前验尸 · Premortem</p>
+      <p class="block-body">假设它已经失败了——最可能的死法是:做成一个监测和建议系统后,客户觉得报告有意思,但无法证明带来线索,续费时直接砍掉。另一条死法是营销代理商把 GEO 当成服务包里的一个小模块,你的独立系统没有数据闭环和渠道优势,很快变成可替代工具。</p>
+    </div>
+
+    
+    <div class="block block--validate">
+      <p class="block-label"><span class="glyph" aria-hidden="true">↓</span>如果你一定要做,先花最小成本验证的那一件事</p>
+      <p class="block-body"><strong>别写系统。</strong>先找 10 个真实的房地产营销负责人,问他们过去 3 个月有没有主动关注“项目在 AI 问答里怎么被提到”,是否为此做过内容、SEO、公关或投放调整。重点看真实行为,不要问“你会不会用”。如果没人做过、没人有预算,这个方向先停。</p>
+    </div>
+
+    
+    <div class="block block--restart">
+      <p class="block-label"><span class="glyph" aria-hidden="true">↻</span>什么条件下值得重启</p>
+      <p class="block-body">当你找到至少 5 个房地产客户已经为 AI 搜索可见性投入过预算或人力,并且他们愿意为“被准确引用/推荐带来有效线索”付费时,再重启。重启时优先从一个窄场景切入,例如新盘知识库纠错、商办招商问答曝光,或中介门店本地问答推荐,不要一上来做通用 GEO 平台。</p>
+    </div>
+  </section>
+
+  <!-- ══ 页脚 ══ -->
+  <footer class="pad">
+    <p class="foot-method">
+      <strong>方法说明 ·</strong> 本报告由「产品克制」评审生成,默认怀疑、举证责任在用户:六个维度各从红灯起步,只有扎实证据(真实用户行为、具体数字、想清楚的差异)才往黄、绿调。灯色 🔴 红 = 有致命疑点或没说清 · 🟡 黄 = 有想法但证据不足 · 🟢 绿 = 有扎实证据。结论与建议仅基于你提供的信息 + 内置框架,不替代真实的用户验证。
+    </p>
+    
+    <p class="foot-sig">Product Restraint · 2026-05-30</p>
+  </footer>
+
+</main>
+</body>
+</html>
