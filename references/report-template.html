@@ -58,9 +58,10 @@
     /* 纸与墨 —— 暖白纸底,墨色文字,全篇唯一强色彩留给灯色 */
     --paper:        #faf8f3;
     --paper-edge:   #f4f1e8;
+    --card:         #fffdf8;   /* 卡片暖白:与纸底同属暖色家族,替代生硬纯白 #fff */
     --ink:          #1f1b16;
     --ink-soft:     #5c554a;
-    --ink-faint:    #8d8475;
+    --ink-faint:    #736a57;   /* 加深至 ~5:1,过 WCAG AA;同色相,仅压低亮度 */
     --line:         #e6dfd0;
     --line-strong:  #d3cab6;
 
@@ -81,6 +82,13 @@
   }
 
   * { box-sizing: border-box; }
+
+  /* 选区高亮:暖羊皮纸调,呼应纸底而非默认蓝 */
+  ::selection { background: #e8dcbe; color: var(--ink); }
+
+  /* 中文阅读优化:pretty 收尾避免行尾「孤字」与不良断行 */
+  .restatement, .summary, .reason, .dim-body,
+  .block-body, .v-tagline, .foot-method { text-wrap: pretty; }
 
   html { -webkit-text-size-adjust: 100%; }
 
@@ -164,6 +172,7 @@
     color: var(--ink-faint);
     text-transform: uppercase;
     line-height: 1.9;
+    font-variant-numeric: tabular-nums;   /* 日期等宽数字 */
   }
   .doc-meta .date { color: var(--ink-soft); }
 
@@ -174,6 +183,7 @@
     font-size: clamp(27px, 5vw, 38px);
     line-height: 1.28;
     letter-spacing: .005em;
+    text-wrap: balance;   /* 多行标题左右配平,避免长短悬殊 */
   }
   /* {{IDEA_TITLE}} — 报头大标题 */
 
@@ -235,7 +245,7 @@
     border: 1px solid var(--line-strong);
     border-left-width: 6px;
     border-radius: 4px;
-    background: #fff;
+    background: var(--card);
     margin-bottom: 30px;
     flex-wrap: wrap;
   }
@@ -310,7 +320,7 @@
     color: var(--ink);
   }
   .scorecard .col-light { width: 1%; white-space: nowrap; }
-  .scorecard .reason { color: var(--ink-soft); line-height: 1.65; }
+  .scorecard .reason { color: var(--ink-soft); line-height: 1.7; }
   .scorecard tbody tr:last-child th,
   .scorecard tbody tr:last-child td { border-bottom: 0; }
 
@@ -383,7 +393,7 @@
     padding: 20px 22px;
     border: 1px solid var(--line-strong);
     border-radius: 4px;
-    background: #fff;
+    background: var(--card);
   }
   .block-label {
     display: flex;
@@ -414,7 +424,7 @@
   /* 最小验证动作 —— 行动卡,墨色强调 */
   .block--validate {
     border-left: 5px solid var(--ink);
-    background: #fff;
+    background: var(--card);
   }
   .block--validate .block-label { color: var(--ink); }
   .block--validate .block-body { color: var(--ink); }
@@ -447,6 +457,7 @@
     letter-spacing: .2em;
     text-transform: uppercase;
     color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
   }
 
   /* ── 入场动画 ─────────────────────────────────────── */
@@ -478,6 +489,7 @@
   }
 
   @media (max-width: 560px) {
+    body { padding: 36px 12px 60px; }
     .verdict .v-tagline { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
     .scorecard { font-size: 14px; }
     .scorecard th, .scorecard td { padding: 12px 8px; }
