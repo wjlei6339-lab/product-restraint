@@ -20,14 +20,31 @@
   {{IDEA_TITLE}}        想法一句话标题(报头大标题 + 文档 title)
   {{REPORT_DATE}}       评审日期,格式 YYYY-MM-DD
   {{RESTATEMENT}}       复述段:把想法用自己的话说回去;走过提问闸门时
-                        纳入用户确认的事实(目标用户/现状/差异)
-  {{VERDICT}}           总体倾向三选一,需同时改两处:
-                          1) 徽章 class:verdict--dont / verdict--rethink / verdict--try
-                          2) 徽章文字:别做 / 再想想 / 可以试
-  {{VERDICT_TAGLINE}}   总体倾向的一句定性
+                        纳入用户确认的事实(目标用户/现状/差异)。
+                        已降为次要,紧贴报头大标题下方(quiet 样式)。
+  {{COVER}}             首页「结论速览」可视化,放最显眼处一眼看懂,也是总体倾向/一句话/下一步动作的唯一落点。
+                        灯色计数/雷达只是 PART I 评分卡的另一种呈现,必须与下方逐维一致,
+                        不得另起判断。替换这些区域:
+                          · 总体倾向 = {{VERDICT}}(改 .cover 修饰类 + .cover-verdict 文字)
+                          · 一句话   = {{VERDICT_TAGLINE}}(填 .cover-tagline)
+                          · 下一步   = {{NEXT_ACTION}}(填 .next-action)
+                          · 证据充分度 = {{EVIDENCE_LEVEL}}(低/中/高,填 .evidence-meter)
+                          · 最大缺口 = {{BIGGEST_GAP}}(填 .gap-callout)
+                          · {{TALLY}} 灯色计数:三个 .tally-num 填本次 红/黄/绿 个数(和恒为 6)
+                          · {{RADAR}} 六维雷达:见下方「雷达填充表」
+  {{VERDICT}}           总体倾向三选一,只出现在【首页速览】一处:
+                          改 .cover 的修饰类(dont / rethink / try)+ .cover-verdict 文字。
+                          文字三选一:别做 / 再想想 / 可以试
+  {{VERDICT_TAGLINE}}   总体倾向的一句定性,只填【首页 .cover-tagline】一处。
+  {{NEXT_ACTION}}       读者看完首屏后应立即做的下一步,一句话,必须来自正文「最小验证动作」或「重启/放行路径」。
+  {{EVIDENCE_LEVEL}}    证据充分度:低 / 中 / 高。低=主要靠假设;中=有用户/场景但缺付费或行为证据;
+                        高=有真实行为、付费或可核实数字。
+  {{CONFIRMED_FACTS}}   已确认事实:1-3 条,来自用户明确提供或提问闸门确认的信息。
+  {{KEY_ASSUMPTIONS}}   关键假设:1-3 条,当前评审仍依赖但尚未被验证的判断。
+  {{BIGGEST_GAP}}       最大缺口:一句话指出最影响结论的证据缺口。
   {{REASON_*}}          六维评分卡的「一句话理由」(6 条,维度名固定不动)。
                         每行灯色同时改两处:① 灯 span 的 class
-                        (light--red/light--amber/light--green)② 灯文字(红/黄/绿)。
+                        (红 / 黄 / 绿对应的 light class)② 灯文字(红/黄/绿)。
                         emoji→class 映射:🔴→red、🟡→amber、🟢→green
   {{SUMMARY}}           简要概述,3–5 句,点出最致命的 1–2 点
   {{DIM_DETAIL}}        逐维度展开:只展开值得展开的(红灯 + 关键黄灯必展,
@@ -39,6 +56,26 @@
   {{RESTART_CONDITION}} 放行/重启路径:结论「别做」时给「什么条件下值得重启」;
                         「可以试」时可改为「放行后最该盯住的一件事」
 
+  ── 六维雷达填充表(坐标系已固定,只需按灯色查表选点,不必自己算)──────
+     首页雷达的「数据多边形 .area」和「6 个顶点 .dot」按下表填:每个维度看它
+     这次是红/黄/绿,取对应列的坐标;六个坐标务必按 ①…⑥ 的「从上到下」顺序
+     拼进 .area 的 points,同时第 i 个 .dot 的 cx/cy 设成同一坐标、class 改成
+     红 / 黄 / 绿对应的 dot class。维度名、轴线、三环网格一律不动。
+
+       轴 / 维度        红(内圈)        黄(中圈)        绿(外圈)
+       ① 真需求度       170,119          170,89          170,58
+       ② 价值与差异     196.9,134.5      222.8,119.5     249.7,104
+       ③ 可行性         196.9,165.5      222.8,180.5     249.7,196
+       ④ 商业账         170,181          170,211         170,242
+       ⑤ 市场与时机     143.1,165.5      117.2,180.5     90.3,196
+       ⑥ 克制度         143.1,134.5      117.2,119.5     90.3,104
+
+     例:六维依次为 黄红绿红黄红 → points 取
+     "170,89 196.9,134.5 249.7,196 170,181 117.2,180.5 143.1,134.5",
+     六个 .dot 同坐标且 class 依次 amber/red/green/red/amber/red(即模版当前样例)。
+     多边形填色随总体倾向自动走(由 .cover 修饰类控制),无需手改 area 颜色。
+     注意:雷达不是量化分数,只表达红/黄/绿风险分布;不要写成精确评分。
+
   ── 不变量(改 prose 时不要破坏)──────────────────────────────────
   · 六个维度、维度名、三部分顺序固定;HTML 仅是同一份报告的另一种呈现,
     内容/灯色/判断必须与正文三部分完全一致。
@@ -49,6 +86,11 @@
   · 删除所有含 {{}} 的行内引导注释;保留分区大注释(形如「══ 报头 ══」那种)。
   · 填充后页面中不得残留任何 {{}} 占位符。
   · {{REPORT_DATE}} 出现在报头与页脚两处、{{IDEA_TITLE}} 出现在文档 title 与报头两处,均需一致替换。
+  · {{VERDICT}} 与 {{VERDICT_TAGLINE}} 只在【首页速览】一处;PART I 不再重复总体倾向,直接进评分卡。
+  · {{NEXT_ACTION}}、{{EVIDENCE_LEVEL}}、{{CONFIRMED_FACTS}}、{{KEY_ASSUMPTIONS}}、{{BIGGEST_GAP}}
+    是正文内容的提炼,不得新增正文外判断。
+  · 首页速览的雷达灯色、灯色计数(红/黄/绿个数)必须与 PART I 评分卡逐维一致;
+    计数三数之和恒为 6,雷达每个顶点的灯色 = 评分卡对应维度的灯色,不得出现第二套判断。
   · 三个强调块(Premortem / 最小验证动作 / 重启)的固定小标题是结构,保持不动,不随结论改写。
 ═══════════════════════════════════════════════════════════════════════════
 -->
@@ -89,12 +131,19 @@
   /* 中文阅读优化:pretty 收尾避免行尾「孤字」与不良断行 */
   .restatement, .summary, .reason, .dim-body,
   .block-body, .v-tagline, .foot-method { text-wrap: pretty; }
+  .headline, .restatement, .summary, .reason, .dim-body,
+  .block-body, .cover-tagline, .decision-card strong,
+  .gap-callout, .evidence-card p, .foot-method {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
 
   html { -webkit-text-size-adjust: 100%; }
 
   body {
     margin: 0;
     padding: 48px 20px 80px;
+    overflow-x: hidden;
     background:
       radial-gradient(900px 600px at 12% -8%, #fdfcf8 0%, transparent 60%),
       var(--paper-edge);
@@ -109,6 +158,7 @@
   /* ── 纸张 ─────────────────────────────────────────── */
   .sheet {
     position: relative;
+    width: 100%;
     max-width: 840px;
     margin: 0 auto;
     background: var(--paper);
@@ -184,6 +234,7 @@
     line-height: 1.28;
     letter-spacing: .005em;
     text-wrap: balance;   /* 多行标题左右配平,避免长短悬殊 */
+    overflow-wrap: anywhere;
   }
   /* {{IDEA_TITLE}} — 报头大标题 */
 
@@ -205,16 +256,210 @@
     margin-bottom: 4px;
   }
 
+  /* ── 首页 · 结论速览(封面图表)──────────────────── */
+  .cover-wrap { padding-top: 30px; padding-bottom: 6px; }
+  .cover {
+    display: grid;
+    grid-template-columns: minmax(0, 312px) 1fr;
+    gap: clamp(18px, 4vw, 44px);
+    align-items: center;
+    padding: 26px clamp(20px, 3.2vw, 32px);
+    border: 1px solid var(--line-strong);
+    border-left-width: 6px;
+    border-radius: 6px;
+    background: var(--card);
+  }
+  .cover > * { min-width: 0; }
+  .cover--dont    { border-left-color: var(--red);   }
+  .cover--rethink { border-left-color: var(--amber); }
+  .cover--try     { border-left-color: var(--green); }
+
+  /* 六维雷达 —— 内→外三环 = 红/黄/绿;形状越大越好,凹陷即风险 */
+  .radar-fig { margin: 0; min-width: 0; }
+  .radar { display: block; width: 100%; max-width: 100%; min-width: 0; height: auto; }
+  .radar .grid  { fill: none; stroke: var(--line); stroke-width: 1; }
+  .radar .grid--outer { stroke: var(--line-strong); }
+  .radar .spoke { stroke: var(--line); stroke-width: 1; }
+  .radar .axis-label {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    fill: var(--ink-soft);
+  }
+  .radar .area { stroke-width: 2; stroke-linejoin: round; }
+  /* 多边形填色随总体倾向走;改 .cover 修饰类即切换 */
+  .cover--dont    .radar .area { fill: rgba(178,59,46,.15);  stroke: var(--red-deep);   }
+  .cover--rethink .radar .area { fill: rgba(224,145,16,.18); stroke: var(--amber-deep); }
+  .cover--try     .radar .area { fill: rgba(47,125,84,.15);  stroke: var(--green-deep); }
+  .radar .dot { stroke: var(--card); stroke-width: 1.5; }
+  .radar .dot--red   { fill: var(--red);   }
+  .radar .dot--amber { fill: var(--amber); }
+  .radar .dot--green { fill: var(--green); }
+  .radar-cap {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 11px;
+    letter-spacing: .02em;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+  .radar-cap .k { font-weight: 700; }
+  .radar-cap .k--red   { color: var(--red-deep);   }
+  .radar-cap .k--amber { color: var(--amber-deep); }
+  .radar-cap .k--green { color: var(--green-deep); }
+
+  /* 右侧结论读出 —— 总体倾向 + 一句话 + 数字 */
+  .cover-readout { min-width: 0; }
+  .cover-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 8px;
+  }
+  .cover-verdict {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 46px);
+    line-height: 1;
+    margin: 0;
+  }
+  .cover--dont    .cover-verdict { color: var(--red-deep);   }
+  .cover--rethink .cover-verdict { color: var(--amber-deep); }
+  .cover--try     .cover-verdict { color: var(--green-deep); }
+  .cover-tagline {
+    margin: 13px 0 0;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
+  .decision-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, .42fr);
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .decision-card {
+    min-width: 0;
+    padding: 12px 13px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: rgba(255,253,248,.72);
+  }
+  .decision-card span,
+  .gap-callout span,
+  .evidence-card span {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .decision-card strong {
+    display: block;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+  .decision-card--action {
+    border-left: 4px solid var(--ink);
+  }
+  .evidence-meter strong {
+    font-family: var(--font-serif);
+    font-size: 25px;
+    line-height: 1.15;
+  }
+  .gap-callout {
+    margin: 12px 0 0;
+    padding: 11px 13px;
+    border-left: 4px solid var(--red);
+    background: var(--red-bg);
+    color: var(--red-deep);
+    font-size: 13.5px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  .evidence-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .evidence-card {
+    min-width: 0;
+  }
+  .evidence-card p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    line-height: 1.62;
+    overflow-wrap: anywhere;
+  }
+  /* 数字 + 一句话解读 */
+  .tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    margin: 20px 0 0;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .tally-item {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    min-width: 0;
+  }
+  .tally-num {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 29px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+  .tally-num.n--red   { color: var(--red);   }
+  .tally-num.n--amber { color: var(--amber-deep); }
+  .tally-num.n--green { color: var(--green); }
+  .tally-cap {
+    font-size: 12px;
+    color: var(--ink-faint);
+    line-height: 1.45;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .tally-cap b {
+    display: block;
+    color: var(--ink-soft);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* 复述段降为次要:小、压灰,紧贴报头标题下方,保留「我理解你想做的」标签 */
+  .restatement--quiet {
+    margin: 18px 0 0;
+    border-left-color: var(--line);
+    color: var(--ink-faint);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
   .rule { height: 1px; background: var(--line); margin: 0; border: 0; }
   .rule--soft { background: var(--line); opacity: .7; }
 
   /* ── 章节标题 ─────────────────────────────────────── */
-  section { padding-top: 36px; padding-bottom: 8px; }
+  section { padding-top: 48px; padding-bottom: 14px; }
   .sec-head {
     display: flex;
     align-items: baseline;
     gap: 14px;
-    margin: 0 0 22px;
+    margin: 0 0 28px;
   }
   .sec-num {
     font-family: var(--font-mono);
@@ -236,50 +481,6 @@
     margin: 0;
   }
 
-  /* ── 总体倾向 · 判决徽章 ──────────────────────────── */
-  .verdict {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 22px 24px;
-    border: 1px solid var(--line-strong);
-    border-left-width: 6px;
-    border-radius: 4px;
-    background: var(--card);
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-  }
-  .verdict .v-label {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: .26em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin: 0 0 6px;
-  }
-  .verdict .v-text {
-    font-family: var(--font-serif);
-    font-weight: 700;
-    font-size: 30px;
-    line-height: 1;
-    margin: 0;
-  }
-  .verdict .v-tagline {
-    flex: 1 1 240px;
-    color: var(--ink-soft);
-    font-size: 15px;
-    line-height: 1.6;
-    padding-left: 20px;
-    border-left: 1px solid var(--line);
-  }
-  /* 三态配色:替换徽章 class 即切换 */
-  .verdict--dont   { border-left-color: var(--red);   background: var(--red-bg); }
-  .verdict--dont   .v-text { color: var(--red-deep); }
-  .verdict--rethink{ border-left-color: var(--amber); background: var(--amber-bg); }
-  .verdict--rethink .v-text { color: var(--amber-deep); }
-  .verdict--try    { border-left-color: var(--green); background: var(--green-bg); }
-  .verdict--try    .v-text { color: var(--green-deep); }
-
   /* ── 评分卡表格 ───────────────────────────────────── */
   .scorecard {
     width: 100%;
@@ -293,11 +494,11 @@
     letter-spacing: .22em;
     text-transform: uppercase;
     color: var(--ink-faint);
-    padding-bottom: 10px;
+    padding-bottom: 14px;
   }
   .scorecard th, .scorecard td {
     text-align: left;
-    padding: 14px 14px;
+    padding: 18px 14px;
     border-bottom: 1px solid var(--line);
     vertical-align: top;
   }
@@ -320,7 +521,7 @@
     color: var(--ink);
   }
   .scorecard .col-light { width: 1%; white-space: nowrap; }
-  .scorecard .reason { color: var(--ink-soft); line-height: 1.7; }
+  .scorecard .reason { color: var(--ink-soft); line-height: 1.78; }
   .scorecard tbody tr:last-child th,
   .scorecard tbody tr:last-child td { border-bottom: 0; }
 
@@ -354,10 +555,11 @@
   .summary {
     font-family: var(--font-serif);
     font-size: 19px;
-    line-height: 1.8;
+    line-height: 1.9;
     color: var(--ink);
     position: relative;
-    padding: 4px 0 4px 26px;
+    margin: 0;
+    padding: 8px 0 8px 28px;
   }
   .summary::before {
     content: "";
@@ -369,7 +571,7 @@
 
   /* ── 详细 · 逐维度展开 ────────────────────────────── */
   .dim {
-    padding: 18px 0;
+    padding: 24px 0;
     border-bottom: 1px dashed var(--line);
   }
   .dim:last-of-type { border-bottom: 0; }
@@ -377,7 +579,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
   .dim-name {
     font-family: var(--font-serif);
@@ -385,12 +587,12 @@
     font-size: 17px;
     margin: 0;
   }
-  .dim-body { color: var(--ink-soft); margin: 0; line-height: 1.72; }
+  .dim-body { color: var(--ink-soft); margin: 0; line-height: 1.82; }
 
   /* ── 强调块:Premortem / 验证 / 重启 ───────────────── */
   .block {
-    margin-top: 26px;
-    padding: 20px 22px;
+    margin-top: 32px;
+    padding: 24px 26px;
     border: 1px solid var(--line-strong);
     border-radius: 4px;
     background: var(--card);
@@ -404,14 +606,14 @@
     font-weight: 600;
     letter-spacing: .18em;
     text-transform: uppercase;
-    margin: 0 0 12px;
+    margin: 0 0 14px;
   }
   .block-label .glyph {
     font-family: var(--font-serif);
     font-size: 16px;
     line-height: 1;
   }
-  .block-body { margin: 0; color: var(--ink-soft); line-height: 1.72; }
+  .block-body { margin: 0; color: var(--ink-soft); line-height: 1.82; }
   .block-body strong { color: var(--ink); font-weight: 700; }
 
   /* Premortem —— 暗红警示,克制 */
@@ -460,18 +662,14 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ── 入场动画 ─────────────────────────────────────── */
+  /* ── 静态报告:不做入场动画,保证截图、打印和批量渲染稳定 ───────── */
   @keyframes rise {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  .anim { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: no-preference) {
-    .anim { opacity: 0; animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
-    .anim:nth-child(1) { animation-delay: .05s; }
-    .anim:nth-child(2) { animation-delay: .14s; }
-    .anim:nth-child(3) { animation-delay: .23s; }
-    .anim:nth-child(4) { animation-delay: .32s; }
-    .anim:nth-child(5) { animation-delay: .41s; }
+    .anim { animation: none; }
   }
 
   /* ── 打印 ─────────────────────────────────────────── */
@@ -483,17 +681,117 @@
       -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
     .anim { opacity: 1 !important; animation: none !important; }
-    section, .verdict, .block, .dim { break-inside: avoid; }
+    section, .block, .dim, .cover { break-inside: avoid; }
     .sec-head { break-after: avoid; }
     footer { break-inside: avoid; }
   }
 
   @media (max-width: 560px) {
     body { padding: 36px 12px 60px; }
-    .verdict .v-tagline { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: 12px; }
+    .sheet {
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
+    }
+    .pad {
+      width: calc(100vw - 24px);
+      max-width: calc(100vw - 24px);
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    .pad > * {
+      max-width: 280px;
+    }
+    header { padding-top: 30px; padding-bottom: 24px; }
+    .masthead { gap: 12px; }
+    .doc-meta {
+      width: 100%;
+      text-align: left;
+      letter-spacing: .12em;
+      line-height: 1.7;
+    }
+    .headline {
+      font-size: 28px;
+      line-height: 1.32;
+    }
+    /* 速览卡:窄屏改为上下堆叠,雷达居中限宽 */
+    .cover {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 22px;
+      padding: 20px 14px;
+      width: 100%;
+    }
+    .radar-fig { width: 100%; max-width: 240px; margin: 0 auto; }
+    .decision-row,
+    .evidence-panel { grid-template-columns: minmax(0, 1fr); }
+    .tally {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .tally-item {
+      display: block;
+      min-width: 0;
+    }
+    .tally-cap {
+      display: block;
+      margin-top: 4px;
+    }
+    section { padding-top: 38px; padding-bottom: 12px; }
+    .sec-head { margin-bottom: 22px; }
+    .summary {
+      font-size: 18px;
+      line-height: 1.86;
+      padding-left: 24px;
+    }
+    .dim { padding: 22px 0; }
+    .dim-head { margin-bottom: 10px; }
+    .dim-body,
+    .block-body { line-height: 1.78; }
+    .block {
+      margin-top: 28px;
+      padding: 22px 18px;
+    }
+    .scorecard,
+    .scorecard tbody,
+    .scorecard tr,
+    .scorecard th,
+    .scorecard td {
+      display: block;
+      width: 100%;
+    }
     .scorecard { font-size: 14px; }
-    .scorecard th, .scorecard td { padding: 12px 8px; }
+    .scorecard thead { display: none; }
+    .scorecard caption {
+      display: block;
+      width: 100%;
+      padding-bottom: 8px;
+    }
+    .scorecard tbody tr {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .scorecard tbody tr:last-child { border-bottom: 0; }
+    .scorecard th,
+    .scorecard td {
+      border-bottom: 0;
+      padding: 0;
+    }
+    .scorecard tbody th {
+      width: 100%;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
+    .scorecard .col-light {
+      width: auto;
+      margin-bottom: 8px;
+      white-space: normal;
+    }
+    .scorecard .reason {
+      line-height: 1.68;
+      overflow-wrap: anywhere;
+    }
   }
+
 </style>
 </head>
 
@@ -520,12 +818,122 @@
     <!-- {{IDEA_TITLE}} — 想法一句话 -->
     <h1 class="headline">AI 工具:帮自由职业者自动写发票和催款邮件</h1>
 
-    <!-- {{RESTATEMENT}} — 复述(走过提问闸门时纳入用户确认的事实) -->
-    <p class="restatement">
+    <!-- {{RESTATEMENT}} — 复述,降为次要(走过提问闸门时纳入用户确认的事实),紧贴标题下方 -->
+    <p class="restatement restatement--quiet">
       <span class="label">我理解你想做的</span>
       给自由职业者一个工具,自动生成发票、自动起草催款邮件,帮他们省去手动处理这些杂事的时间——核心卖点是「省事」,目标用户是接单收款全靠自己的个人从业者。
     </p>
   </header>
+
+  <!-- ══ 结论速览(首页图表)══
+       {{COVER}} —— 同一份评审的可视化速览,放在最显眼处「一眼看懂」。
+       灯色 / 总体倾向 / 一句话必须与下方 PART I 完全一致(它只是评分卡的另一种呈现)。
+       替换这些区域:
+         · 总体倾向 = {{VERDICT}}:改 .cover 修饰类(dont / rethink / try)+ .cover-verdict 文字(别做/再想想/可以试)
+         · 一句话 = {{VERDICT_TAGLINE}}:填 .cover-tagline
+         · 下一步动作 = {{NEXT_ACTION}}:填 .next-action
+         · 证据充分度 = {{EVIDENCE_LEVEL}}:填 .evidence-meter
+         · 最大缺口 = {{BIGGEST_GAP}}:填 .gap-callout
+         · 数字 = {{TALLY}}:三个 .tally-num 填本次 红/黄/绿 个数(三者之和恒为 6)
+         · 六维雷达 = {{RADAR}}:见 <style> 上方「六维雷达填充表」,按每维灯色取坐标 -->
+  <section class="pad anim cover-wrap">
+    <div class="cover cover--rethink">
+
+      <!-- 左:六维雷达(形状越大越好,凹陷即风险)。轴位置与维度名固定不动。 -->
+      <figure class="radar-fig">
+        <svg class="radar" viewBox="0 0 340 286" role="img"
+             aria-label="六维评审雷达:真需求度黄、价值与差异红、可行性绿、商业账红、市场与时机黄、克制度红">
+          <!-- 网格三环:由内到外 = 红 / 黄 / 绿(固定) -->
+          <polygon class="grid" points="170,119 196.9,134.5 196.9,165.5 170,181 143.1,165.5 143.1,134.5"/>
+          <polygon class="grid" points="170,89 222.8,119.5 222.8,180.5 170,211 117.2,180.5 117.2,119.5"/>
+          <polygon class="grid grid--outer" points="170,58 249.7,104 249.7,196 170,242 90.3,196 90.3,104"/>
+          <!-- 六条轴(固定) -->
+          <line class="spoke" x1="170" y1="150" x2="170"   y2="58"/>
+          <line class="spoke" x1="170" y1="150" x2="249.7" y2="104"/>
+          <line class="spoke" x1="170" y1="150" x2="249.7" y2="196"/>
+          <line class="spoke" x1="170" y1="150" x2="170"   y2="242"/>
+          <line class="spoke" x1="170" y1="150" x2="90.3"  y2="196"/>
+          <line class="spoke" x1="170" y1="150" x2="90.3"  y2="104"/>
+          <!-- {{RADAR}} 数据多边形:按填充表 ①…⑥ 顺序取各维灯色坐标 -->
+          <polygon class="area" points="170,89 196.9,134.5 249.7,196 170,181 117.2,180.5 143.1,134.5"/>
+          <!-- {{RADAR}} 顶点圆点:cx/cy 与 area 各顶点一致,class 改对应红/黄/绿的 dot class -->
+          <circle class="dot dot--amber" cx="170"   cy="89"    r="4.5"/>
+          <circle class="dot dot--red"   cx="196.9" cy="134.5" r="4.5"/>
+          <circle class="dot dot--green" cx="249.7" cy="196"   r="4.5"/>
+          <circle class="dot dot--red"   cx="170"   cy="181"   r="4.5"/>
+          <circle class="dot dot--amber" cx="117.2" cy="180.5" r="4.5"/>
+          <circle class="dot dot--red"   cx="143.1" cy="134.5" r="4.5"/>
+          <!-- 维度标签(固定不动) -->
+          <text class="axis-label" x="170" y="41"  text-anchor="middle">真需求度</text>
+          <text class="axis-label" x="268" y="98"  text-anchor="start">价值与差异</text>
+          <text class="axis-label" x="268" y="211" text-anchor="start">可行性</text>
+          <text class="axis-label" x="170" y="267" text-anchor="middle">商业账</text>
+          <text class="axis-label" x="72"  y="211" text-anchor="end">市场与时机</text>
+          <text class="axis-label" x="72"  y="98"  text-anchor="end">克制度</text>
+        </svg>
+        <figcaption class="radar-cap">
+          内→外 三环 = <span class="k k--red">红</span> · <span class="k k--amber">黄</span> · <span class="k k--green">绿</span>　仅表示风险分布,不是精确评分
+        </figcaption>
+      </figure>
+
+      <!-- 右:总体倾向 + 一句话 + 数字 -->
+      <div class="cover-readout">
+        <p class="cover-label">评审结论 · At a glance</p>
+        <!-- {{VERDICT}} 同 PART I -->
+        <p class="cover-verdict">再想想</p>
+        <!-- {{VERDICT_TAGLINE}} 一句话解读,同 PART I -->
+        <p class="cover-tagline">痛点是真的,但被你捆错了地方,而且离现有工具太近——现在投入更像赌博。</p>
+        <div class="decision-row">
+          <div class="decision-card decision-card--action next-action">
+            <span>下一步动作</span>
+            <!-- {{NEXT_ACTION}} -->
+            <strong>先验证「催款」是否真能让自由职业者付费,暂缓开发完整工具。</strong>
+          </div>
+          <div class="decision-card evidence-meter">
+            <span>证据充分度</span>
+            <!-- {{EVIDENCE_LEVEL}} -->
+            <strong>中</strong>
+          </div>
+        </div>
+        <!-- {{BIGGEST_GAP}} -->
+        <p class="gap-callout"><span>最大缺口</span>还没有证据证明用户愿意离开现有收款平台,为一个独立 AI 催款工具单独付费。</p>
+        <!-- {{TALLY}} 灯色计数 + 一句话解读;三个数字之和恒为 6 -->
+        <div class="tally">
+          <div class="tally-item">
+            <span class="tally-num n--red">3</span>
+            <span class="tally-cap"><b>红灯</b>有致命疑点 / 没说清</span>
+          </div>
+          <div class="tally-item">
+            <span class="tally-num n--amber">2</span>
+            <span class="tally-cap"><b>黄灯</b>有想法但证据不足</span>
+          </div>
+          <div class="tally-item">
+            <span class="tally-num n--green">1</span>
+            <span class="tally-cap"><b>绿灯</b>有扎实证据</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evidence-panel">
+        <div class="evidence-card">
+          <span>已确认事实</span>
+          <!-- {{CONFIRMED_FACTS}} -->
+          <p>目标用户是个人接单的自由职业者;催款涉及真金白银,确实可能是强痛点。</p>
+        </div>
+        <div class="evidence-card">
+          <span>关键假设</span>
+          <!-- {{KEY_ASSUMPTIONS}} -->
+          <p>用户愿意为催款单独付费,且不会满足于 Stripe / 财务 SaaS 内置提醒。</p>
+        </div>
+        <div class="evidence-card">
+          <span>最大缺口</span>
+          <!-- {{BIGGEST_GAP}} -->
+          <p>缺少真实用户过去为催款付出时间、金钱或更换工具的行为证据。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
 
   <hr class="rule">
 
@@ -536,17 +944,7 @@
       <h2 class="sec-title">一、可行性评价</h2>
     </div>
 
-    <!-- {{VERDICT}} / {{VERDICT_TAGLINE}}
-         徽章 class 三选一:verdict--dont(别做)/ verdict--rethink(再想想)/ verdict--try(可以试)
-         文字同步改 .v-text -->
-    <div class="verdict verdict--rethink">
-      <div>
-        <p class="v-label">总体倾向</p>
-        <p class="v-text">再想想</p>
-      </div>
-      <p class="v-tagline">痛点是真的,但被你捆错了地方,而且离现有工具太近——现在投入更像赌博。</p>
-    </div>
-
+    <!-- 总体倾向 + 一句话已由首页「结论速览」卡承担,此处不再重复;PART I 直接给评分卡 -->
     <table class="scorecard">
       <caption>六维评分卡</caption>
       <thead>
