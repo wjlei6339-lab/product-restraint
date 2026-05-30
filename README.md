@@ -1,23 +1,16 @@
-# product-restraint：产品克制 Skill
+# product-restraint
 
-`product-restraint` 是一个 Claude Code skill，用来在你动手做产品、功能、App、工具或创业想法前，先判断它**值不值得做**。
-
-它不会默认帮你把想法做出来，而是用产品、用户、商业、市场几个角度，把想法过一遍，输出：
-
-- 可行性评分卡
-- 简要概述
-- 详细说明
-- 最小成本验证动作
+一个用于产品想法预审的 Claude Code skill。它会在你动手做产品、功能、App、工具或创业想法前，先判断：**这件事值不值得做**。
 
 核心立场：**默认怀疑，但不无脑否定。**
 
-## 什么时候用
+## 使用方式
 
-当你想评估一个产品想法时，直接在 Claude Code 里描述它即可，例如：
+在 Claude Code 里直接描述一个产品想法：
 
 > 我想做一个 AI 工具，把播客自动剪成短视频，帮创作者发到小红书和抖音。
 
-skill 会自动触发，并从六个维度给出红 / 黄 / 绿判断：
+skill 会输出可行性评分卡、简要结论、详细理由和最小成本验证动作，并用红 / 黄 / 绿判断六个维度：
 
 - 真需求度
 - 价值与差异
@@ -26,72 +19,37 @@ skill 会自动触发，并从六个维度给出红 / 黄 / 绿判断：
 - 市场与时机
 - 克制度
 
-## 怎么使用
+## 本地链接
 
-本仓库是 skill 的唯一真源。当前全局 skill 链接应指向本项目：
+本仓库是 skill 的唯一真源。全局 skill 链接应指向这里：
 
 ```bash
 ~/.claude/skills/product-restraint -> ~/PycharmProjects/product-restraint
 ```
 
-因此，直接编辑本仓库文件即可生效。
+直接修改本仓库即可生效。只有一种例外：如果改了 `SKILL.md` frontmatter 里的 `description`，需要新开 Claude Code 会话才会重新加载触发条件。
 
-注意：
-
-- 修改 `SKILL.md` 正文：保存后，下次触发就会使用新版内容。
-- 修改 `SKILL.md` frontmatter 里的 `description`：需要新开 Claude Code 会话才会重新加载触发条件。
-
-## 评审报告导出（HTML）
-
-在可来回交互的会话里，三部分评审给完后，skill 会再额外生成一份**专业、可离线打开、可打印转发**的 HTML 报告，落在当前工作目录（文件名形如 `产品克制-评审-<想法标题>-<日期>.html`）。
-
-它**参照定稿模版** `references/report-template.html` 填充——样式与版式固定、只有内容随评审变化，所以每份报告观感一致、专业度可控。报告首屏按“决策备忘录”设计：先给总体倾向、下一步动作、证据充分度、最大缺口和六维风险分布，再展开评分卡与详细说明。非交互批处理（如 `claude -p`）或无法写文件时会自动跳过，不影响评审正文。
-
-## 怎么修改
-
-最常改这几个文件：
+## 文件说明
 
 | 文件 | 用途 |
 |---|---|
-| `SKILL.md` | skill 主体。改性格、评审流程、评分卡、输出模板。 |
-| `references/frameworks.md` | 框架资料。补充 Mom Test、Premortem、单位经济、护城河等判断依据。 |
-| `references/report-template.html` | 报告 HTML 模版（人类定稿）。改报告的样式、版式、配色、印刷适配。 |
-| `docs/design.md` | 设计说明。改核心方向前先看这里。 |
+| `SKILL.md` | skill 主体：评审流程、口吻、评分卡、输出模板。 |
+| `references/frameworks.md` | 评审框架资料：Mom Test、Premortem、单位经济等。 |
+| `references/report-template.html` | HTML 报告模版：样式、版式、打印适配。 |
+| `docs/design.md` | 设计说明，改核心方向前先看这里。 |
 
-如果想让 skill 更严格、更温和、输出更短、增加评审维度，优先改 `SKILL.md`。
+想让 skill 更严格、更温和、输出更短，通常优先改 `SKILL.md`。
 
-## 怎么验证
+## 验证方式
 
-本项目没有自动化测试。验证靠手动：新开一个 Claude Code 会话，描述一个产品想法触发 skill，人工检查三件事：
+本项目没有自动化测试。改完后，新开 Claude Code 会话，丢几个产品想法手动检查：
 
-1. 套壳、伪需求类想法，是否敢给“别做”，且理由具体。
-2. 信息很少的一句话想法，是否把“没说清”当成风险。
-3. 有真实证据的好想法，是否没有被机械否定。
+- 套壳、伪需求类想法，是否敢明确说“不建议做”。
+- 信息很少的一句话想法，是否把“没说清”当成风险。
+- 有真实证据的好想法，是否没有被机械否定。
+- 如果改了 HTML 报告模版，再检查移动端、打印版、灯色一致性，以及是否还有 `{{}}` 占位符。
 
-如果改了 HTML 报告模版，再额外检查：
+## 维护提醒
 
-1. 390px 手机宽度没有横向裁切，评分卡能逐维阅读。
-2. 首屏的总体倾向、灯色计数、雷达灯色和评分卡完全一致。
-3. 下一步动作、证据充分度、最大缺口都能在正文里找到依据。
-4. 成品 HTML 没有残留 `{{}}` 占位符。
-5. 打印或导出 PDF 时，首屏和三个强调块没有被不自然截断。
-
-如果用 `skill-creator` 做带 baseline 的正式对照评测，要注意：因为本 skill 通过软链接全局注册，subagent 可能自动加载它，导致 baseline 被污染。要做干净 A/B，需要临时把 skill 放到 `~/.claude/skills/` 之外。
-
-## 项目结构
-
-```text
-product-restraint/
-├── SKILL.md                 # skill 主体
-├── references/
-│   ├── frameworks.md        # 框架资料(按需读)
-│   └── report-template.html # 报告 HTML 呈现模版(人类定稿)
-├── docs/                    # design.md + superpowers/{plans,specs}
-├── CLAUDE.md, AGENTS.md     # 给 Claude / 通用 agent 的项目说明
-└── README.md
-```
-
-## 维护原则
-
-- 不要复制出第二份 skill 文件，本仓库就是唯一真源。
+- 不要复制第二份 skill 文件；本仓库就是唯一真源。
 - 改评分维度时，同步更新 `SKILL.md` 的评分卡和输出模板。
